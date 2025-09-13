@@ -27,8 +27,38 @@ CATS 提供全球分公司依 **ISO 14064** 框架蒐集、審核與彙整 Scope
 - **Backend (API)**  
   - .NET 8.0 (ASP.NET Core)  
 
-- **Database**  
-  - Microsoft SQL Server 2022  
+- **Database**
+  - Microsoft SQL Server 2022
+
+---
+
+## 🚀 快速開始
+
+CATS 包含 .NET 8 後端 API 與 Vue 3 前端。以下步驟說明如何在本機啟動系統：
+
+### 1. 安裝先決條件
+- [Node.js](https://nodejs.org/) 18+
+- [.NET SDK 8.0](https://dotnet.microsoft.com/)
+- SQL Server 2022 或相容版本
+
+### 2. 啟動資料庫
+啟動 SQL Server 並依 `database/` 目錄中的腳本建立必要資料表與資料庫設定。
+
+### 3. 啟動後端 API
+```bash
+cd backend
+dotnet restore
+dotnet run
+```
+API 預設會在 `http://localhost:5000` 提供服務。
+
+### 4. 啟動前端
+```bash
+cd frontend
+npm install
+npm run dev
+```
+瀏覽器開啟 `http://localhost:5173` 即可存取系統。
 
 ---
 
