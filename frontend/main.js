@@ -11,7 +11,14 @@ window.addEventListener('DOMContentLoaded', () => {
   const contentArea = document.getElementById('contentArea');
   const menuLinks = document.querySelectorAll('.menu-link');
 
-  const loadPage = (url) => {
+  const resolveUrl = (path) => {
+    const base = new URL('.', window.location.href);
+    return new URL(path, base).toString();
+  };
+
+  const loadPage = (path) => {
+    const url = resolveUrl(path);
+
     fetch(url)
       .then((response) => {
         if (!response.ok) {
@@ -32,11 +39,12 @@ window.addEventListener('DOMContentLoaded', () => {
   menuLinks.forEach((link) => {
     link.addEventListener('click', (event) => {
       event.preventDefault();
-      const url = link.getAttribute('href');
+      const target = event.currentTarget;
+      const url = target.getAttribute('href');
       loadPage(url);
 
       menuLinks.forEach((menuLink) => menuLink.classList.remove('active'));
-      link.classList.add('active');
+      target.classList.add('active');
     });
   });
 
