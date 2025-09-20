@@ -49,9 +49,38 @@
       <main class="main-layout">
         <nav class="side-nav" aria-label="Main navigation">
           <ul class="nav-list">
-            <li class="nav-item">Menu 1</li>
-            <li class="nav-item">Menu 2</li>
-            <li class="nav-item">Menu 3</li>
+            <li class="nav-item">
+              <div class="nav-item-title">系統參數定義</div>
+              <ul class="nav-sublist">
+                <li class="nav-subitem">組織架構設定</li>
+                <li class="nav-subitem">排放源類型設定</li>
+                <li class="nav-subitem">排放源與據點關聯管理</li>
+                <li class="nav-subitem">排放源實例管理</li>
+                <li class="nav-subitem">計算因子管理</li>
+                <li class="nav-subitem">審核流程定義</li>
+              </ul>
+            </li>
+            <li class="nav-item">
+              <div class="nav-item-title">資料蒐集</div>
+              <ul class="nav-sublist">
+                <li class="nav-subitem">固定燃燒排放源 (發電機)</li>
+                <li class="nav-subitem">移動排放源 (公務汽車、貨車)</li>
+                <li class="nav-subitem">逸散性排放(飲水機、滅火器、補滅火器)</li>
+                <li class="nav-subitem">化糞池</li>
+                <li class="nav-subitem">輸入電力的間接排放 (辦公室用電)</li>
+                <li class="nav-subitem">上游運輸物流經常耗材</li>
+                <li class="nav-subitem">上游運輸辦公耗材</li>
+                <li class="nav-subitem">商務差旅</li>
+                <li class="nav-subitem">採購商品或服務_倉儲堆高機</li>
+                <li class="nav-subitem">燃料與能源相關活動外購能源</li>
+                <li class="nav-subitem">物流貨物運輸 物流運輸排放 (陸運)</li>
+                <li class="nav-subitem">物流運輸排放 (海運)</li>
+                <li class="nav-subitem">物流運輸排放 (空運)</li>
+              </ul>
+            </li>
+            <li class="nav-item">
+              <div class="nav-item-title">清冊簡表</div>
+            </li>
           </ul>
         </nav>
         <section class="dashboard">
@@ -272,14 +301,37 @@ function handleLogout() {
 }
 
 .nav-item {
-  padding: 0.65rem 0.75rem;
-  border-radius: 8px;
+  padding: 0.75rem;
+  border-radius: 10px;
   transition: background 0.2s ease;
   cursor: default;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
 }
 
 .nav-item:hover {
   background: rgba(255, 255, 255, 0.08);
+}
+
+.nav-item-title {
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.nav-sublist {
+  list-style: none;
+  margin: 0;
+  padding: 0 0 0 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.nav-subitem {
+  font-size: 0.9rem;
+  color: rgba(229, 231, 235, 0.85);
+  line-height: 1.4;
 }
 
 .dashboard {
@@ -319,11 +371,7 @@ function handleLogout() {
     width: 100%;
     display: flex;
     justify-content: center;
-  }
-
-  .nav-list {
-    flex-direction: row;
-    gap: 1rem;
+    align-items: stretch;
   }
 }
 </style>
