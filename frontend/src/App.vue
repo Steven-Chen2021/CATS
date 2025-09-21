@@ -61,7 +61,13 @@
                   :key="link.href"
                   class="nav-subitem"
                 >
-                  <a class="nav-subitem-link" :href="link.href">
+                  <a
+                    class="nav-subitem-link"
+                    :class="{ 'is-active': activeHref === link.href }"
+                    :href="link.href"
+                    :aria-current="activeHref === link.href ? 'page' : undefined"
+                    @click.prevent="handleSelectLink(link.href)"
+                  >
                     {{ link.label }}
                   </a>
                 </li>
@@ -70,10 +76,14 @@
           </ul>
         </nav>
         <section class="dashboard">
-          <h2 class="dashboard-title">Dashboard</h2>
-          <p class="dashboard-copy">
-            This placeholder dashboard is shown after a successful login. Replace it with
-            the widgets or charts required by your project.
+          <div
+            v-if="activeContent"
+            key="content"
+            class="dashboard-content"
+            v-html="activeContent"
+          />
+          <p v-else class="dashboard-placeholder">
+            請從左側選擇一個項目以載入對應內容。
           </p>
         </section>
       </main>
@@ -82,7 +92,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, reactive, ref } from 'vue';
+import { computed, onMounted, reactive, ref, watch } from 'vue';
 
 const STORAGE_KEYS = {
   username: 'username',
@@ -156,7 +166,18 @@ const form = reactive({
   verificationCode: '',
 });
 
-const storedUser = computed(() => form.username || localStorage.getItem(STORAGE_KEYS.username) || '');
+const storedUser = computed(
+  () => form.username || localStorage.getItem(STORAGE_KEYS.username) || ''
+);
+
+const pageModules = import.meta.glob('../pages/*.html', {
+  eager: true,
+  query: '?raw',
+  import: 'default',
+}) as Record<string, string>;
+
+const activeHref = ref('');
+const activeContent = ref('');
 
 onMounted(() => {
   const username = localStorage.getItem(STORAGE_KEYS.username);
@@ -166,6 +187,15 @@ onMounted(() => {
     form.username = username;
     form.verificationCode = verificationCode;
     isLoggedIn.value = true;
+  }
+});
+
+watch(isLoggedIn, (loggedIn) => {
+  if (loggedIn) {
+    loadDefaultContent();
+  } else {
+    activeHref.value = '';
+    activeContent.value = '';
   }
 });
 
@@ -186,6 +216,42 @@ function handleLogout() {
   localStorage.removeItem(STORAGE_KEYS.verificationCode);
   form.password = '';
   isLoggedIn.value = false;
+}
+
+function handleSelectLink(href: string) {
+  if (activeHref.value === href) {
+    return;
+  }
+  setActiveContent(href);
+}
+
+function loadDefaultContent() {
+  const firstSection = menuSections.find((section) => section.links?.length);
+  const firstHref = firstSection?.links?.[0]?.href;
+
+  if (firstHref) {
+    setActiveContent(firstHref);
+  }
+}
+
+function setActiveContent(href: string) {
+  const moduleKey = getModuleKey(href);
+  const html = moduleKey ? pageModules[moduleKey] : undefined;
+
+  activeHref.value = href;
+  activeContent.value =
+    html || '<section class="page-content"><p>無法載入選取的內容。</p></section>';
+}
+
+function getModuleKey(href: string) {
+  if (!href) return '';
+  const normalized = href.replace(/^\/*/, '');
+  const key = `../${normalized}`;
+  return key in pageModules ? key : '';
+}
+
+if (isLoggedIn.value) {
+  loadDefaultContent();
 }
 </script>
 
@@ -394,6 +460,12 @@ function handleLogout() {
   outline: none;
 }
 
+.nav-subitem-link.is-active {
+  background: rgba(79, 70, 229, 0.35);
+  color: #ffffff;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.35);
+}
+
 .dashboard {
   flex: 1;
   padding: 2rem;
@@ -403,17 +475,27 @@ function handleLogout() {
   gap: 1rem;
 }
 
-.dashboard-title {
-  margin: 0;
-  font-size: 1.75rem;
-  font-weight: 700;
+.dashboard-content {
+  flex: 1;
+  background: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 20px 35px rgba(15, 23, 42, 0.08);
+  padding: 2rem;
+  overflow: auto;
+  line-height: 1.7;
+  color: #1f2933;
 }
 
-.dashboard-copy {
+.dashboard-content :deep(h1),
+.dashboard-content :deep(h2),
+.dashboard-content :deep(h3) {
+  color: #1f2937;
+}
+
+.dashboard-placeholder {
   margin: 0;
-  font-size: 1rem;
-  line-height: 1.6;
   color: #4b5563;
+  font-size: 1rem;
 }
 
 @media (max-width: 768px) {
