@@ -1,4 +1,225 @@
-<section class="page-content">
+<section class="page-content business-travel">
   <h1>商務差旅</h1>
   <p>管理差旅交通與住宿資訊以計算相關排放。</p>
+
+  <p>
+    下列表格彙整商務差旅活動所需的蒐集欄位、資料型態與填寫來源，協助建立完整的活動紀錄。
+  </p>
+
+  <div class="table-wrapper" role="region" aria-label="商務差旅活動蒐集欄位表">
+    <table class="collection-table">
+      <thead>
+        <tr>
+          <th scope="col">欄位名稱</th>
+          <th scope="col">輸入形式 / 顯示規則</th>
+          <th scope="col">說明</th>
+          <th scope="col">資料來源 / 填寫方式</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <th scope="row">公司名稱</th>
+          <td>系統依據據點選擇自動帶入</td>
+          <td>所屬公司或組織名稱</td>
+          <td>系統產生</td>
+        </tr>
+        <tr>
+          <th scope="row">據點名稱</th>
+          <td>下拉選單</td>
+          <td>分站或據點名稱</td>
+          <td>手動填寫</td>
+        </tr>
+        <tr>
+          <th scope="row">活動編號</th>
+          <td>系統內部流水號</td>
+          <td>活動唯一識別碼</td>
+          <td>系統產生</td>
+        </tr>
+        <tr>
+          <th scope="row">出差人員</th>
+          <td>文字輸入</td>
+          <td>出差員工姓名</td>
+          <td>手動填寫</td>
+        </tr>
+        <tr>
+          <th scope="row">出發日期</th>
+          <td>日期選擇</td>
+          <td>行程開始日期</td>
+          <td>手動填寫</td>
+        </tr>
+        <tr>
+          <th scope="row">回程日期</th>
+          <td>日期選擇</td>
+          <td>行程結束日期</td>
+          <td>手動填寫</td>
+        </tr>
+        <tr>
+          <th scope="row">交通方式</th>
+          <td>下拉選單（飛機、高鐵、火車、巴士、計程車等）</td>
+          <td>選擇所使用的交通工具</td>
+          <td>手動填寫</td>
+        </tr>
+        <tr>
+          <th scope="row">出差起點</th>
+          <td>自動完成輸入</td>
+          <td>行程起始地點</td>
+          <td>手動填寫</td>
+        </tr>
+        <tr>
+          <th scope="row">出差迄點</th>
+          <td>自動完成輸入</td>
+          <td>行程目的地</td>
+          <td>手動填寫</td>
+        </tr>
+        <tr>
+          <th scope="row">艙等 / 座艙類型</th>
+          <td>下拉選單（經濟艙、豪經艙、商務艙、頭等艙）</td>
+          <td>交通艙等或座艙等級</td>
+          <td>手動填寫</td>
+        </tr>
+        <tr>
+          <th scope="row">單日趟數</th>
+          <td>下拉選單（去程、回程、來回）</td>
+          <td>紀錄單日行程方向</td>
+          <td>手動填寫</td>
+        </tr>
+        <tr>
+          <th scope="row">人次</th>
+          <td>數字輸入（僅允許正整數）</td>
+          <td>參與出差的人數</td>
+          <td>手動填寫</td>
+        </tr>
+        <tr>
+          <th scope="row">運輸公里數</th>
+          <td>數字輸入或系統自動計算</td>
+          <td>起訖地距離（公里）</td>
+          <td>系統自動帶入或手動填寫</td>
+        </tr>
+        <tr>
+          <th scope="row">票根影印上傳</th>
+          <td>檔案上傳（票根影本）</td>
+          <td>上傳交通票根影印檔案</td>
+          <td>手動填寫</td>
+        </tr>
+        <tr>
+          <th scope="row">活動數據來源</th>
+          <td>下拉選單（報帳單、差旅平台、票根）</td>
+          <td>資料來源註記</td>
+          <td>手動填寫</td>
+        </tr>
+        <tr>
+          <th scope="row">備註</th>
+          <td>文字輸入</td>
+          <td>補充說明內容</td>
+          <td>手動填寫</td>
+        </tr>
+        <tr>
+          <th scope="row">EF_CO2</th>
+          <td>系統計算</td>
+          <td>對應的 CO₂ 排放因子</td>
+          <td>系統產生</td>
+        </tr>
+        <tr>
+          <th scope="row">EF_CO2_Unit</th>
+          <td>系統計算</td>
+          <td>排放因子單位資訊</td>
+          <td>系統產生</td>
+        </tr>
+        <tr>
+          <th scope="row">FactorVersion</th>
+          <td>系統紀錄</td>
+          <td>排放因子版本識別</td>
+          <td>系統產生</td>
+        </tr>
+        <tr>
+          <th scope="row">Passenger_KM</th>
+          <td>系統計算</td>
+          <td>乘客公里數換算結果</td>
+          <td>系統產生</td>
+        </tr>
+        <tr>
+          <th scope="row">Emission_CO2</th>
+          <td>系統計算</td>
+          <td>CO₂ 排放量</td>
+          <td>系統產生</td>
+        </tr>
+        <tr>
+          <th scope="row">Emission_Total_CO2e</th>
+          <td>系統計算</td>
+          <td>總溫室氣體排放量（CO₂e）</td>
+          <td>系統產生</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
 </section>
+
+<style>
+  .business-travel {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .business-travel h1 {
+    margin: 0;
+    font-size: 2rem;
+  }
+
+  .business-travel p {
+    margin: 0;
+    color: #4b5563;
+    line-height: 1.6;
+  }
+
+  .business-travel .table-wrapper {
+    margin-top: 0.5rem;
+    overflow-x: auto;
+    border-radius: 12px;
+    border: 1px solid #e5e7eb;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6);
+  }
+
+  .business-travel .collection-table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 720px;
+    background: #ffffff;
+  }
+
+  .business-travel .collection-table th,
+  .business-travel .collection-table td {
+    padding: 0.85rem 1rem;
+    border: 1px solid #e5e7eb;
+    text-align: left;
+    vertical-align: top;
+    font-size: 0.95rem;
+  }
+
+  .business-travel .collection-table thead th {
+    background: #f9fafb;
+    color: #1f2937;
+    font-weight: 600;
+  }
+
+  .business-travel .collection-table tbody tr:nth-child(even) {
+    background: #f9fafb;
+  }
+
+  .business-travel .collection-table tbody th {
+    font-weight: 600;
+    white-space: nowrap;
+    color: #1f2937;
+  }
+
+  @media (max-width: 768px) {
+    .business-travel .collection-table {
+      font-size: 0.9rem;
+    }
+
+    .business-travel .collection-table th,
+    .business-travel .collection-table td {
+      padding: 0.75rem;
+    }
+  }
+</style>
