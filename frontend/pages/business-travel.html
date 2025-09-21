@@ -1,225 +1,467 @@
-<section class="page-content business-travel">
-  <h1>商務差旅</h1>
-  <p>管理差旅交通與住宿資訊以計算相關排放。</p>
+<section class="page-content business-travel" aria-labelledby="businessTravelTitle">
+  <header class="page-header">
+    <h1 id="businessTravelTitle">商務差旅</h1>
+    <p>建立與維護商務差旅紀錄，每列代表一次差旅活動。</p>
+    <p class="hint-text">請於下列表格中手動輸入差旅資料，系統欄位會於儲存後自動產生。</p>
+    <div class="toolbar" role="group" aria-label="差旅紀錄操作">
+      <button type="button" class="primary-button" id="addTravelRow">新增差旅紀錄</button>
+    </div>
+  </header>
 
-  <p>
-    下列表格彙整商務差旅活動所需的蒐集欄位、資料型態與填寫來源，協助建立完整的活動紀錄。
-  </p>
-
-  <div class="table-wrapper" role="region" aria-label="商務差旅活動蒐集欄位表">
-    <table class="collection-table">
+  <div class="table-wrapper" role="region" aria-labelledby="travelTableCaption">
+    <table class="travel-table">
+      <caption id="travelTableCaption" class="visually-hidden">商務差旅活動資料輸入表</caption>
       <thead>
         <tr>
-          <th scope="col">欄位名稱</th>
-          <th scope="col">輸入形式 / 顯示規則</th>
-          <th scope="col">說明</th>
-          <th scope="col">資料來源 / 填寫方式</th>
+          <th scope="col">公司名稱</th>
+          <th scope="col">據點名稱</th>
+          <th scope="col">活動編號</th>
+          <th scope="col">出差人員</th>
+          <th scope="col">出發日期</th>
+          <th scope="col">回程日期</th>
+          <th scope="col">交通方式</th>
+          <th scope="col">出差起點</th>
+          <th scope="col">出差迄點</th>
+          <th scope="col">艙等 / 座艙類型</th>
+          <th scope="col">單日趟數</th>
+          <th scope="col">人次</th>
+          <th scope="col">運輸公里數</th>
+          <th scope="col">票根影印上傳</th>
+          <th scope="col">活動數據來源</th>
+          <th scope="col">備註</th>
+          <th scope="col">EF_CO2</th>
+          <th scope="col">EF_CO2_Unit</th>
+          <th scope="col">FactorVersion</th>
+          <th scope="col">Passenger_KM</th>
+          <th scope="col">Emission_CO2</th>
+          <th scope="col">Emission_Total_CO2e</th>
+          <th scope="col" class="actions-header">操作</th>
         </tr>
       </thead>
-      <tbody>
-        <tr>
-          <th scope="row">公司名稱</th>
-          <td>系統依據據點選擇自動帶入</td>
-          <td>所屬公司或組織名稱</td>
-          <td>系統產生</td>
-        </tr>
-        <tr>
-          <th scope="row">據點名稱</th>
-          <td>下拉選單</td>
-          <td>分站或據點名稱</td>
-          <td>手動填寫</td>
-        </tr>
-        <tr>
-          <th scope="row">活動編號</th>
-          <td>系統內部流水號</td>
-          <td>活動唯一識別碼</td>
-          <td>系統產生</td>
-        </tr>
-        <tr>
-          <th scope="row">出差人員</th>
-          <td>文字輸入</td>
-          <td>出差員工姓名</td>
-          <td>手動填寫</td>
-        </tr>
-        <tr>
-          <th scope="row">出發日期</th>
-          <td>日期選擇</td>
-          <td>行程開始日期</td>
-          <td>手動填寫</td>
-        </tr>
-        <tr>
-          <th scope="row">回程日期</th>
-          <td>日期選擇</td>
-          <td>行程結束日期</td>
-          <td>手動填寫</td>
-        </tr>
-        <tr>
-          <th scope="row">交通方式</th>
-          <td>下拉選單（飛機、高鐵、火車、巴士、計程車等）</td>
-          <td>選擇所使用的交通工具</td>
-          <td>手動填寫</td>
-        </tr>
-        <tr>
-          <th scope="row">出差起點</th>
-          <td>自動完成輸入</td>
-          <td>行程起始地點</td>
-          <td>手動填寫</td>
-        </tr>
-        <tr>
-          <th scope="row">出差迄點</th>
-          <td>自動完成輸入</td>
-          <td>行程目的地</td>
-          <td>手動填寫</td>
-        </tr>
-        <tr>
-          <th scope="row">艙等 / 座艙類型</th>
-          <td>下拉選單（經濟艙、豪經艙、商務艙、頭等艙）</td>
-          <td>交通艙等或座艙等級</td>
-          <td>手動填寫</td>
-        </tr>
-        <tr>
-          <th scope="row">單日趟數</th>
-          <td>下拉選單（去程、回程、來回）</td>
-          <td>紀錄單日行程方向</td>
-          <td>手動填寫</td>
-        </tr>
-        <tr>
-          <th scope="row">人次</th>
-          <td>數字輸入（僅允許正整數）</td>
-          <td>參與出差的人數</td>
-          <td>手動填寫</td>
-        </tr>
-        <tr>
-          <th scope="row">運輸公里數</th>
-          <td>數字輸入或系統自動計算</td>
-          <td>起訖地距離（公里）</td>
-          <td>系統自動帶入或手動填寫</td>
-        </tr>
-        <tr>
-          <th scope="row">票根影印上傳</th>
-          <td>檔案上傳（票根影本）</td>
-          <td>上傳交通票根影印檔案</td>
-          <td>手動填寫</td>
-        </tr>
-        <tr>
-          <th scope="row">活動數據來源</th>
-          <td>下拉選單（報帳單、差旅平台、票根）</td>
-          <td>資料來源註記</td>
-          <td>手動填寫</td>
-        </tr>
-        <tr>
-          <th scope="row">備註</th>
-          <td>文字輸入</td>
-          <td>補充說明內容</td>
-          <td>手動填寫</td>
-        </tr>
-        <tr>
-          <th scope="row">EF_CO2</th>
-          <td>系統計算</td>
-          <td>對應的 CO₂ 排放因子</td>
-          <td>系統產生</td>
-        </tr>
-        <tr>
-          <th scope="row">EF_CO2_Unit</th>
-          <td>系統計算</td>
-          <td>排放因子單位資訊</td>
-          <td>系統產生</td>
-        </tr>
-        <tr>
-          <th scope="row">FactorVersion</th>
-          <td>系統紀錄</td>
-          <td>排放因子版本識別</td>
-          <td>系統產生</td>
-        </tr>
-        <tr>
-          <th scope="row">Passenger_KM</th>
-          <td>系統計算</td>
-          <td>乘客公里數換算結果</td>
-          <td>系統產生</td>
-        </tr>
-        <tr>
-          <th scope="row">Emission_CO2</th>
-          <td>系統計算</td>
-          <td>CO₂ 排放量</td>
-          <td>系統產生</td>
-        </tr>
-        <tr>
-          <th scope="row">Emission_Total_CO2e</th>
-          <td>系統計算</td>
-          <td>總溫室氣體排放量（CO₂e）</td>
-          <td>系統產生</td>
+      <tbody id="businessTravelBody">
+        <tr class="travel-row" data-template="true">
+          <td data-label="公司名稱">
+            <input
+              type="text"
+              name="companyName"
+              class="table-input"
+              placeholder="依據據點選擇自動帶入"
+              aria-label="公司名稱"
+              readonly
+            />
+          </td>
+          <td data-label="據點名稱">
+            <select name="siteName" class="table-select" aria-label="據點名稱">
+              <option value="" selected disabled>選擇據點</option>
+              <option value="taipei">台北總部</option>
+              <option value="hsinchu">新竹研發中心</option>
+              <option value="taichung">台中營運據點</option>
+              <option value="kaohsiung">高雄服務處</option>
+            </select>
+          </td>
+          <td data-label="活動編號">
+            <input
+              type="text"
+              name="activityCode"
+              class="table-input"
+              placeholder="系統內部流水號"
+              aria-label="活動編號"
+              readonly
+            />
+          </td>
+          <td data-label="出差人員">
+            <input type="text" name="traveler" class="table-input" aria-label="出差人員" />
+          </td>
+          <td data-label="出發日期">
+            <input type="date" name="departureDate" class="table-input" aria-label="出發日期" />
+          </td>
+          <td data-label="回程日期">
+            <input type="date" name="returnDate" class="table-input" aria-label="回程日期" />
+          </td>
+          <td data-label="交通方式">
+            <select name="transportation" class="table-select" aria-label="交通方式">
+              <option value="" selected disabled>選擇交通方式</option>
+              <option value="plane">飛機</option>
+              <option value="hsr">高鐵</option>
+              <option value="train">火車</option>
+              <option value="bus">巴士</option>
+              <option value="taxi">計程車</option>
+              <option value="other">其他</option>
+            </select>
+          </td>
+          <td data-label="出差起點">
+            <input
+              type="text"
+              name="origin"
+              class="table-input"
+              list="travelLocations"
+              aria-label="出差起點"
+              placeholder="輸入或選擇地點"
+            />
+          </td>
+          <td data-label="出差迄點">
+            <input
+              type="text"
+              name="destination"
+              class="table-input"
+              list="travelLocations"
+              aria-label="出差迄點"
+              placeholder="輸入或選擇地點"
+            />
+          </td>
+          <td data-label="艙等 / 座艙類型">
+            <select name="cabinClass" class="table-select" aria-label="艙等或座艙類型">
+              <option value="" selected disabled>選擇艙等</option>
+              <option value="economy">經濟艙</option>
+              <option value="premiumEconomy">豪經艙</option>
+              <option value="business">商務艙</option>
+              <option value="first">頭等艙</option>
+            </select>
+          </td>
+          <td data-label="單日趟數">
+            <select name="tripDirection" class="table-select" aria-label="單日趟數">
+              <option value="" selected disabled>選擇趟數</option>
+              <option value="outbound">去程</option>
+              <option value="return">回程</option>
+              <option value="roundtrip">來回</option>
+            </select>
+          </td>
+          <td data-label="人次">
+            <input
+              type="number"
+              name="headcount"
+              class="table-input"
+              min="1"
+              step="1"
+              aria-label="人次"
+              inputmode="numeric"
+            />
+          </td>
+          <td data-label="運輸公里數">
+            <input
+              type="number"
+              name="distance"
+              class="table-input"
+              min="0"
+              step="0.1"
+              aria-label="運輸公里數"
+              placeholder="系統可自動帶入或手動填寫"
+            />
+          </td>
+          <td data-label="票根影印上傳">
+            <input type="file" name="ticketCopy" class="table-input" aria-label="票根影印上傳" />
+          </td>
+          <td data-label="活動數據來源">
+            <select name="dataSource" class="table-select" aria-label="活動數據來源">
+              <option value="" selected disabled>選擇來源</option>
+              <option value="expense">報帳單</option>
+              <option value="travelPlatform">差旅平台</option>
+              <option value="ticket">票根</option>
+            </select>
+          </td>
+          <td data-label="備註">
+            <textarea name="remark" class="table-textarea" aria-label="備註" rows="1"></textarea>
+          </td>
+          <td data-label="EF_CO2">
+            <input type="text" name="efCO2" class="table-input" placeholder="系統產生" aria-label="EF_CO2" readonly />
+          </td>
+          <td data-label="EF_CO2_Unit">
+            <input
+              type="text"
+              name="efCO2Unit"
+              class="table-input"
+              placeholder="系統產生"
+              aria-label="EF_CO2 單位"
+              readonly
+            />
+          </td>
+          <td data-label="FactorVersion">
+            <input
+              type="text"
+              name="factorVersion"
+              class="table-input"
+              placeholder="系統產生"
+              aria-label="FactorVersion"
+              readonly
+            />
+          </td>
+          <td data-label="Passenger_KM">
+            <input
+              type="text"
+              name="passengerKM"
+              class="table-input"
+              placeholder="系統產生"
+              aria-label="Passenger_KM"
+              readonly
+            />
+          </td>
+          <td data-label="Emission_CO2">
+            <input
+              type="text"
+              name="emissionCO2"
+              class="table-input"
+              placeholder="系統產生"
+              aria-label="Emission_CO2"
+              readonly
+            />
+          </td>
+          <td data-label="Emission_Total_CO2e">
+            <input
+              type="text"
+              name="emissionTotalCO2e"
+              class="table-input"
+              placeholder="系統產生"
+              aria-label="Emission_Total_CO2e"
+              readonly
+            />
+          </td>
+          <td class="actions-cell" data-label="操作">
+            <button type="button" class="secondary-button remove-row" aria-label="刪除此差旅紀錄">
+              刪除
+            </button>
+          </td>
         </tr>
       </tbody>
     </table>
   </div>
+
+  <datalist id="travelLocations">
+    <option value="台北市" />
+    <option value="新北市" />
+    <option value="桃園市" />
+    <option value="台中市" />
+    <option value="台南市" />
+    <option value="高雄市" />
+    <option value="香港" />
+    <option value="東京" />
+    <option value="新加坡" />
+  </datalist>
+
+  <footer class="page-footer">
+    <p class="helper-text">系統欄位於資料送出後依據計算邏輯自動填入，手動輸入欄位請確認資料完整性。</p>
+  </footer>
 </section>
+
+<script>
+  const addButton = document.getElementById('addTravelRow');
+  const tableBody = document.getElementById('businessTravelBody');
+
+  function createRow() {
+    const templateRow = tableBody.querySelector('.travel-row');
+    const newRow = templateRow.cloneNode(true);
+    newRow.removeAttribute('data-template');
+
+    newRow.querySelectorAll('input, select, textarea').forEach((field) => {
+      if (field.type === 'file') {
+        field.value = '';
+      } else if (field.tagName === 'SELECT') {
+        field.selectedIndex = 0;
+      } else if (field.matches('[readonly]')) {
+        field.value = '';
+      } else {
+        field.value = '';
+      }
+    });
+
+    tableBody.appendChild(newRow);
+  }
+
+  function handleRemoveRow(event) {
+    const button = event.target.closest('.remove-row');
+    if (!button) return;
+
+    const rows = tableBody.querySelectorAll('.travel-row');
+    if (rows.length === 1) {
+      rows[0].querySelectorAll('input:not([type="file"]), textarea').forEach((field) => {
+        if (!field.matches('[readonly]')) field.value = '';
+      });
+      rows[0].querySelectorAll('select').forEach((select) => {
+        select.selectedIndex = 0;
+      });
+      rows[0].querySelector('input[type="file"]').value = '';
+      return;
+    }
+
+    const row = button.closest('tr');
+    row?.remove();
+  }
+
+  addButton?.addEventListener('click', createRow);
+  tableBody?.addEventListener('click', handleRemoveRow);
+</script>
 
 <style>
   .business-travel {
     display: flex;
     flex-direction: column;
-    gap: 1rem;
+    gap: 1.5rem;
   }
 
-  .business-travel h1 {
+  .page-header {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .page-header h1 {
     margin: 0;
     font-size: 2rem;
+    color: #111827;
   }
 
-  .business-travel p {
+  .page-header p {
     margin: 0;
     color: #4b5563;
     line-height: 1.6;
   }
 
-  .business-travel .table-wrapper {
-    margin-top: 0.5rem;
-    overflow-x: auto;
-    border-radius: 12px;
-    border: 1px solid #e5e7eb;
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6);
-  }
-
-  .business-travel .collection-table {
-    width: 100%;
-    border-collapse: collapse;
-    min-width: 720px;
-    background: #ffffff;
-  }
-
-  .business-travel .collection-table th,
-  .business-travel .collection-table td {
-    padding: 0.85rem 1rem;
-    border: 1px solid #e5e7eb;
-    text-align: left;
-    vertical-align: top;
+  .hint-text {
     font-size: 0.95rem;
   }
 
-  .business-travel .collection-table thead th {
-    background: #f9fafb;
+  .toolbar {
+    display: flex;
+    gap: 0.75rem;
+    margin-top: 0.75rem;
+  }
+
+  .primary-button,
+  .secondary-button {
+    padding: 0.45rem 0.85rem;
+    font-size: 0.9rem;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    transition: background 0.2s ease, color 0.2s ease;
+  }
+
+  .primary-button {
+    background: #2563eb;
+    color: #ffffff;
+  }
+
+  .primary-button:hover,
+  .primary-button:focus {
+    background: #1d4ed8;
+  }
+
+  .secondary-button {
+    background: #e5e7eb;
     color: #1f2937;
+  }
+
+  .secondary-button:hover,
+  .secondary-button:focus {
+    background: #d1d5db;
+  }
+
+  .table-wrapper {
+    overflow-x: auto;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    background: #ffffff;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6);
+  }
+
+  .travel-table {
+    width: max(100%, 1200px);
+    border-collapse: collapse;
+    font-size: 0.9rem;
+    table-layout: fixed;
+  }
+
+  .travel-table caption {
+    text-align: left;
+    padding: 0.75rem 1rem;
     font-weight: 600;
   }
 
-  .business-travel .collection-table tbody tr:nth-child(even) {
+  .travel-table thead th {
+    position: sticky;
+    top: 0;
     background: #f9fafb;
-  }
-
-  .business-travel .collection-table tbody th {
-    font-weight: 600;
+    color: #111827;
+    padding: 0.85rem 1rem;
+    text-align: left;
+    border-bottom: 1px solid #e5e7eb;
     white-space: nowrap;
-    color: #1f2937;
+    z-index: 1;
   }
 
-  @media (max-width: 768px) {
-    .business-travel .collection-table {
-      font-size: 0.9rem;
-    }
+  .travel-table tbody td {
+    padding: 0.75rem 1rem;
+    border-top: 1px solid #f1f5f9;
+    vertical-align: top;
+    background: #ffffff;
+  }
 
-    .business-travel .collection-table th,
-    .business-travel .collection-table td {
-      padding: 0.75rem;
+  .travel-table tbody tr:nth-child(even) td {
+    background: #f8fafc;
+  }
+
+  .travel-table tbody tr:hover td {
+    background: #eef2ff;
+  }
+
+  .table-input,
+  .table-select,
+  .table-textarea {
+    width: 100%;
+    padding: 0.45rem 0.5rem;
+    border: 1px solid #cbd5f5;
+    border-radius: 6px;
+    font: inherit;
+    color: #1f2937;
+    background: #ffffff;
+    box-sizing: border-box;
+  }
+
+  .table-input[readonly] {
+    background: #f3f4f6;
+    color: #6b7280;
+    cursor: not-allowed;
+  }
+
+  .table-textarea {
+    resize: vertical;
+    min-height: 38px;
+  }
+
+  .actions-header,
+  .actions-cell {
+    text-align: center;
+    white-space: nowrap;
+  }
+
+  .actions-cell {
+    vertical-align: middle;
+  }
+
+  .page-footer {
+    color: #6b7280;
+    font-size: 0.9rem;
+  }
+
+  .helper-text {
+    margin: 0;
+    line-height: 1.5;
+  }
+
+  .visually-hidden {
+    position: absolute !important;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  @media (max-width: 1024px) {
+    .travel-table {
+      width: max(100%, 980px);
     }
   }
 </style>
