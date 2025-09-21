@@ -49,37 +49,23 @@
       <main class="main-layout">
         <nav class="side-nav" aria-label="Main navigation">
           <ul class="nav-list">
-            <li class="nav-item">
-              <div class="nav-item-title">系統參數定義</div>
-              <ul class="nav-sublist">
-                <li class="nav-subitem">組織架構設定</li>
-                <li class="nav-subitem">排放源類型設定</li>
-                <li class="nav-subitem">排放源與據點關聯管理</li>
-                <li class="nav-subitem">排放源實例管理</li>
-                <li class="nav-subitem">計算因子管理</li>
-                <li class="nav-subitem">審核流程定義</li>
+            <li
+              v-for="section in menuSections"
+              :key="section.title"
+              class="nav-item"
+            >
+              <div class="nav-item-title">{{ section.title }}</div>
+              <ul v-if="section.links?.length" class="nav-sublist">
+                <li
+                  v-for="link in section.links"
+                  :key="link.href"
+                  class="nav-subitem"
+                >
+                  <a class="nav-subitem-link" :href="link.href">
+                    {{ link.label }}
+                  </a>
+                </li>
               </ul>
-            </li>
-            <li class="nav-item">
-              <div class="nav-item-title">資料蒐集</div>
-              <ul class="nav-sublist">
-                <li class="nav-subitem">固定燃燒排放源 (發電機)</li>
-                <li class="nav-subitem">移動排放源 (公務汽車、貨車)</li>
-                <li class="nav-subitem">逸散性排放(飲水機、滅火器、補滅火器)</li>
-                <li class="nav-subitem">化糞池</li>
-                <li class="nav-subitem">輸入電力的間接排放 (辦公室用電)</li>
-                <li class="nav-subitem">上游運輸物流經常耗材</li>
-                <li class="nav-subitem">上游運輸辦公耗材</li>
-                <li class="nav-subitem">商務差旅</li>
-                <li class="nav-subitem">採購商品或服務_倉儲堆高機</li>
-                <li class="nav-subitem">燃料與能源相關活動外購能源</li>
-                <li class="nav-subitem">物流貨物運輸 物流運輸排放 (陸運)</li>
-                <li class="nav-subitem">物流運輸排放 (海運)</li>
-                <li class="nav-subitem">物流運輸排放 (空運)</li>
-              </ul>
-            </li>
-            <li class="nav-item">
-              <div class="nav-item-title">清冊簡表</div>
             </li>
           </ul>
         </nav>
@@ -102,6 +88,64 @@ const STORAGE_KEYS = {
   username: 'username',
   verificationCode: 'verificationCode',
 };
+
+const menuSections = [
+  {
+    title: '系統參數定義',
+    links: [
+      { label: '組織架構設定', href: 'pages/organization-structure.html' },
+      { label: '排放源類型設定', href: 'pages/emission-source-types.html' },
+      {
+        label: '排放源與據點關聯管理',
+        href: 'pages/emission-source-site-association.html',
+      },
+      { label: '排放源實例管理', href: 'pages/emission-source-instances.html' },
+      { label: '計算因子管理', href: 'pages/calculation-factors.html' },
+      { label: '審核流程定義', href: 'pages/review-process.html' },
+    ],
+  },
+  {
+    title: '資料蒐集',
+    links: [
+      { label: '固定燃燒排放源 (發電機)', href: 'pages/stationary-combustion.html' },
+      { label: '移動排放源 (公務汽車、貨車)', href: 'pages/mobile-sources.html' },
+      {
+        label: '逸散性排放(飲水機、滅火器、補滅火器)',
+        href: 'pages/fugitive-emissions.html',
+      },
+      { label: '化糞池', href: 'pages/septic-tank.html' },
+      {
+        label: '輸入電力的間接排放 (辦公室用電)',
+        href: 'pages/indirect-electricity.html',
+      },
+      {
+        label: '上游運輸物流經常耗材',
+        href: 'pages/upstream-logistics-consumables.html',
+      },
+      {
+        label: '上游運輸辦公耗材',
+        href: 'pages/upstream-office-consumables.html',
+      },
+      { label: '商務差旅', href: 'pages/business-travel.html' },
+      {
+        label: '採購商品或服務－倉儲堆高機',
+        href: 'pages/purchased-goods-services-forklift.html',
+      },
+      {
+        label: '燃料與能源相關活動外購能源',
+        href: 'pages/fuel-energy-related.html',
+      },
+      { label: '物流貨物運輸', href: 'pages/logistics-goods-transport.html' },
+      { label: '物流運輸排放 (陸運)', href: 'pages/logistics-transport-land.html' },
+      { label: '物流運輸排放 (海運)', href: 'pages/logistics-transport-sea.html' },
+      { label: '物流運輸排放 (空運)', href: 'pages/logistics-transport-air.html' },
+    ],
+  },
+  {
+    title: '清冊簡表',
+    links: [{ label: '清冊簡表', href: 'pages/inventory-summary.html' }],
+  },
+];
 
 const isLoggedIn = ref(false);
 const errorMessage = ref('');
@@ -332,6 +376,22 @@ function handleLogout() {
   font-size: 0.9rem;
   color: rgba(229, 231, 235, 0.85);
   line-height: 1.4;
+}
+
+.nav-subitem-link {
+  display: block;
+  color: inherit;
+  text-decoration: none;
+  padding: 0.3rem 0.4rem;
+  border-radius: 6px;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+.nav-subitem-link:hover,
+.nav-subitem-link:focus {
+  background: rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+  outline: none;
 }
 
 .dashboard {
