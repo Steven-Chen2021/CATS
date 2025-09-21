@@ -94,3 +94,19 @@ nav a.active {
 .login-box button {
   padding: 8px 16px;
 }
+
+.menu-section {
+  margin: 16px 0 8px;
+  font-weight: 700;
+  color: #bdc3c7;
+  text-transform: none;
+}
+
+.menu-section span {
+  display: block;
+  padding: 4px 12px;
+}
+
+nav ul.menu {
+  margin: 0;
+}
