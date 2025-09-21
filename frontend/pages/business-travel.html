@@ -10,6 +10,31 @@
 
   <div class="table-wrapper" role="region" aria-labelledby="travelTableCaption">
     <table class="travel-table">
+      <colgroup>
+        <col class="col-company" />
+        <col class="col-site" />
+        <col class="col-activity" />
+        <col class="col-traveler" />
+        <col class="col-date" />
+        <col class="col-date" />
+        <col class="col-transportation" />
+        <col class="col-location" />
+        <col class="col-location" />
+        <col class="col-cabin" />
+        <col class="col-trip" />
+        <col class="col-compact" />
+        <col class="col-distance" />
+        <col class="col-upload" />
+        <col class="col-data-source" />
+        <col class="col-remark" />
+        <col class="col-system" />
+        <col class="col-system" />
+        <col class="col-system" />
+        <col class="col-system" />
+        <col class="col-system" />
+        <col class="col-system" />
+        <col class="col-actions" />
+      </colgroup>
       <caption id="travelTableCaption" class="visually-hidden">商務差旅活動資料輸入表</caption>
       <thead>
         <tr>
@@ -364,10 +389,78 @@
   }
 
   .travel-table {
-    width: max(100%, 1200px);
+    width: max(100%, 1600px);
     border-collapse: collapse;
     font-size: 0.9rem;
-    table-layout: fixed;
+    table-layout: auto;
+  }
+
+  .travel-table col {
+    width: auto;
+  }
+
+  .travel-table .col-company {
+    width: 160px;
+  }
+
+  .travel-table .col-site {
+    width: 150px;
+  }
+
+  .travel-table .col-activity {
+    width: 140px;
+  }
+
+  .travel-table .col-traveler {
+    width: 150px;
+  }
+
+  .travel-table .col-date {
+    width: 130px;
+  }
+
+  .travel-table .col-transportation {
+    width: 150px;
+  }
+
+  .travel-table .col-location {
+    width: 160px;
+  }
+
+  .travel-table .col-cabin {
+    width: 150px;
+  }
+
+  .travel-table .col-trip {
+    width: 120px;
+  }
+
+  .travel-table .col-compact {
+    width: 110px;
+  }
+
+  .travel-table .col-distance {
+    width: 160px;
+  }
+
+  .travel-table .col-upload {
+    width: 170px;
+  }
+
+  .travel-table .col-data-source {
+    width: 160px;
+  }
+
+  .travel-table .col-remark {
+    width: 220px;
+  }
+
+  .travel-table .col-system {
+    width: 150px;
+  }
+
+  .travel-table .col-actions {
+    width: 110px;
   }
 
   .travel-table caption {
@@ -461,7 +554,7 @@
 
   @media (max-width: 1024px) {
     .travel-table {
-      width: max(100%, 980px);
+      width: max(100%, 1200px);
     }
   }
 </style>

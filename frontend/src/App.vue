@@ -39,7 +39,18 @@
 
     <div v-else class="dashboard-root">
       <header class="top-bar">
-        <div class="logo" aria-hidden="true">🐱</div>
+        <div class="top-bar-left">
+          <button
+            class="toggle-nav-button"
+            type="button"
+            :aria-expanded="!isNavCollapsed"
+            aria-controls="mainNavigation"
+            @click="toggleNavigation"
+          >
+            {{ isNavCollapsed ? '顯示選單' : '隱藏選單' }}
+          </button>
+          <div class="logo" aria-hidden="true">🐱</div>
+        </div>
         <div class="user-info">
           <span class="user-label">Logged in as:</span>
           <span class="user-name">{{ storedUser }}</span>
@@ -47,7 +58,13 @@
         </div>
       </header>
       <main class="main-layout">
-        <nav class="side-nav" aria-label="Main navigation">
+        <nav
+          v-show="!isNavCollapsed"
+          id="mainNavigation"
+          class="side-nav"
+          aria-label="Main navigation"
+          :aria-hidden="isNavCollapsed"
+        >
           <ul class="nav-list">
             <li
               v-for="section in menuSections"
@@ -158,6 +175,7 @@ const menuSections = [
 ];
 
 const isLoggedIn = ref(false);
+const isNavCollapsed = ref(false);
 const errorMessage = ref('');
 
 const form = reactive({
@@ -215,6 +233,7 @@ function handleLogout() {
   localStorage.removeItem(STORAGE_KEYS.username);
   localStorage.removeItem(STORAGE_KEYS.verificationCode);
   form.password = '';
+  isNavCollapsed.value = false;
   isLoggedIn.value = false;
 }
 
@@ -223,6 +242,10 @@ function handleSelectLink(href: string) {
     return;
   }
   setActiveContent(href);
+}
+
+function toggleNavigation() {
+  isNavCollapsed.value = !isNavCollapsed.value;
 }
 
 function loadDefaultContent() {
@@ -352,6 +375,33 @@ if (isLoggedIn.value) {
   background: #1f2937;
   color: #f9fafb;
   box-shadow: 0 4px 12px rgba(15, 23, 42, 0.15);
+}
+
+.top-bar-left {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.toggle-nav-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  background: transparent;
+  border: 1px solid rgba(249, 250, 251, 0.4);
+  border-radius: 9999px;
+  color: inherit;
+  padding: 0.4rem 0.85rem;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+}
+
+.toggle-nav-button:hover,
+.toggle-nav-button:focus {
+  background: rgba(249, 250, 251, 0.12);
+  border-color: rgba(249, 250, 251, 0.6);
+  outline: none;
 }
 
 .logo {
@@ -503,6 +553,15 @@ if (isLoggedIn.value) {
     flex-direction: column;
     gap: 0.75rem;
     text-align: center;
+  }
+
+  .top-bar-left {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .toggle-nav-button {
+    align-self: flex-start;
   }
 
   .main-layout {
