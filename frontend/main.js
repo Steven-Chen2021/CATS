@@ -27,7 +27,30 @@ window.addEventListener('DOMContentLoaded', () => {
         return response.text();
       })
       .then((html) => {
-        contentArea.innerHTML = html;
+        const template = document.createElement('template');
+        template.innerHTML = html.trim();
+
+        const fragment = template.content.cloneNode(true);
+        const scripts = Array.from(fragment.querySelectorAll('script'));
+
+        scripts.forEach((script) => script.parentNode?.removeChild(script));
+
+        contentArea.innerHTML = '';
+        contentArea.appendChild(fragment);
+
+        scripts.forEach((script) => {
+          const executableScript = document.createElement('script');
+
+          Array.from(script.attributes).forEach((attr) => {
+            executableScript.setAttribute(attr.name, attr.value);
+          });
+
+          if (script.textContent) {
+            executableScript.textContent = script.textContent;
+          }
+
+          contentArea.appendChild(executableScript);
+        });
       })
       .catch((error) => {
         console.error(error);
