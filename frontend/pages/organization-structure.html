@@ -1,4 +1,136 @@
-<section class="page-content">
-  <h1>組織架構設定</h1>
-  <p>管理並維護企業組織架構層級與關聯設定。</p>
+<section class="page-content organization-structure" aria-labelledby="organizationStructureTitle">
+  <header class="page-header">
+    <h1 id="organizationStructureTitle">組織架構設定</h1>
+    <p>以視覺化表格管理企業的國家、區域與站點配置。</p>
+  </header>
+
+  <article class="table-card" aria-label="組織架構表格">
+    <div id="organizationStructureTable" class="hot-container" role="application"></div>
+  </article>
 </section>
+
+<script>
+  (function () {
+    const HANDSONTABLE_STYLE_URL =
+      'https://cdn.jsdelivr.net/npm/handsontable@14.3.0/dist/handsontable.full.min.css';
+    const HANDSONTABLE_SCRIPT_URL =
+      'https://cdn.jsdelivr.net/npm/handsontable@14.3.0/dist/handsontable.full.min.js';
+
+    const demoData = [
+      { country: '台灣', region: '北部區域', site: '台北總部' },
+      { country: '台灣', region: '南部區域', site: '高雄營運中心' },
+      { country: '日本', region: '關東區域', site: '東京辦公室' }
+    ];
+
+    function ensureStylesheet() {
+      if (document.querySelector('link[data-handsontable-stylesheet]')) {
+        return;
+      }
+
+      const stylesheet = document.createElement('link');
+      stylesheet.rel = 'stylesheet';
+      stylesheet.href = HANDSONTABLE_STYLE_URL;
+      stylesheet.dataset.handsontableStylesheet = 'true';
+      document.head.appendChild(stylesheet);
+    }
+
+    function initializeTable() {
+      const container = document.getElementById('organizationStructureTable');
+      if (!container || !window.Handsontable) {
+        return;
+      }
+
+      if (container.__handsontableInstance) {
+        container.__handsontableInstance.destroy();
+      }
+
+      const hot = new window.Handsontable(container, {
+        data: demoData.map((item) => [item.country, item.region, item.site]),
+        colHeaders: ['國家', '區', '站點'],
+        columns: [
+          { data: 0, type: 'text' },
+          { data: 1, type: 'text' },
+          { data: 2, type: 'text' }
+        ],
+        licenseKey: 'non-commercial-and-evaluation',
+        stretchH: 'all',
+        height: 'auto',
+        manualColumnResize: true,
+        manualRowResize: true,
+        readOnly: true,
+        className: 'htMiddle htCenter'
+      });
+
+      container.__handsontableInstance = hot;
+    }
+
+    function loadHandsontable() {
+      if (window.Handsontable) {
+        initializeTable();
+        return;
+      }
+
+      ensureStylesheet();
+
+      let script = document.querySelector('script[data-handsontable-script]');
+
+      if (!script) {
+        script = document.createElement('script');
+        script.src = HANDSONTABLE_SCRIPT_URL;
+        script.dataset.handsontableScript = 'true';
+        script.addEventListener('load', initializeTable, { once: true });
+        document.head.appendChild(script);
+      } else if (script.dataset.loaded === 'true') {
+        initializeTable();
+      } else {
+        script.addEventListener('load', initializeTable, { once: true });
+      }
+
+      script.addEventListener('load', () => {
+        script.dataset.loaded = 'true';
+      }, { once: true });
+    }
+
+    loadHandsontable();
+  })();
+</script>
+
+<style>
+  .organization-structure {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  .organization-structure .page-header {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .organization-structure .page-header h1 {
+    margin: 0;
+    font-size: 2rem;
+    color: #111827;
+  }
+
+  .organization-structure .page-header p {
+    margin: 0;
+    color: #4b5563;
+    line-height: 1.6;
+  }
+
+  .organization-structure .table-card {
+    background-color: #ffffff;
+    border-radius: 12px;
+    border: 1px solid #e5e7eb;
+    padding: 1rem;
+    box-shadow: 0 10px 30px rgba(15, 23, 42, 0.05);
+  }
+
+  .organization-structure .hot-container {
+    width: 100%;
+    min-height: 280px;
+    overflow: hidden;
+  }
+</style>
