@@ -121,6 +121,7 @@ const menuSections = [
     title: '系統參數定義',
     links: [
       { label: '組織架構設定', href: 'pages/organization-structure.html' },
+      { label: '據點設定', href: 'pages/site-settings.html' },
       { label: '排放源類型設定', href: 'pages/emission-source-types.html' },
       {
         label: '排放源與據點關聯管理',
