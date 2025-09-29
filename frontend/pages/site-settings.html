@@ -1,0 +1,274 @@
+<section class="page-content site-settings" aria-labelledby="siteSettingsTitle">
+  <header class="page-header">
+    <h1 id="siteSettingsTitle">據點設定</h1>
+    <p>根據站點維護各據點的狀態與啟用資訊，可即時新增或調整資料。</p>
+  </header>
+
+  <section class="selector-card" aria-labelledby="siteSelectorLabel">
+    <div class="selector-field">
+      <label id="siteSelectorLabel" for="siteSelector">選擇站點</label>
+      <select id="siteSelector" class="site-select" aria-describedby="siteSelectorHelper">
+        <option value="" disabled selected>請選擇站點</option>
+      </select>
+      <p id="siteSelectorHelper" class="helper-text">切換站點以管理其底下的據點。</p>
+    </div>
+  </section>
+
+  <article class="table-card" aria-label="據點維護表格">
+    <div id="siteLocationsTable" class="hot-container" role="application"></div>
+  </article>
+</section>
+
+<script>
+  (function () {
+    const HANDSONTABLE_STYLE_URL =
+      'https://cdn.jsdelivr.net/npm/handsontable@14.3.0/dist/handsontable.full.min.css';
+    const HANDSONTABLE_SCRIPT_URL =
+      'https://cdn.jsdelivr.net/npm/handsontable@14.3.0/dist/handsontable.full.min.js';
+
+    const siteOptions = [
+      { id: 'taipei-hq', name: '台北總部' },
+      { id: 'kaohsiung-ops', name: '高雄營運中心' },
+      { id: 'tokyo-office', name: '東京辦公室' }
+    ];
+
+    const siteLocationData = {
+      'taipei-hq': [
+        { locationName: '松山辦公室', status: '啟用', statusDate: '2024-03-01' },
+        { locationName: '內湖倉儲', status: '停用', statusDate: '2023-11-20' }
+      ],
+      'kaohsiung-ops': [
+        { locationName: '小港營運據點', status: '啟用', statusDate: '2024-01-12' }
+      ],
+      'tokyo-office': [
+        { locationName: '新宿合作據點', status: '啟用', statusDate: '2024-02-27' }
+      ]
+    };
+
+    let currentSiteId = siteOptions[0]?.id ?? '';
+    let hotInstance = null;
+
+    function ensureStylesheet() {
+      if (document.querySelector('link[data-handsontable-stylesheet]')) {
+        return;
+      }
+
+      const stylesheet = document.createElement('link');
+      stylesheet.rel = 'stylesheet';
+      stylesheet.href = HANDSONTABLE_STYLE_URL;
+      stylesheet.dataset.handsontableStylesheet = 'true';
+      document.head.appendChild(stylesheet);
+    }
+
+    function getSiteData(siteId) {
+      if (!siteLocationData[siteId]) {
+        siteLocationData[siteId] = [];
+      }
+
+      return siteLocationData[siteId];
+    }
+
+    function renderTable(siteId) {
+      const container = document.getElementById('siteLocationsTable');
+      if (!container || !window.Handsontable) {
+        return;
+      }
+
+      const data = getSiteData(siteId);
+
+      if (hotInstance) {
+        hotInstance.loadData(data);
+        return;
+      }
+
+      hotInstance = new window.Handsontable(container, {
+        data,
+        dataSchema: { locationName: '', status: '啟用', statusDate: null },
+        colHeaders: ['據點名稱', '狀態', '狀態更新日期'],
+        columns: [
+          {
+            data: 'locationName',
+            type: 'text',
+            placeholder: '輸入據點名稱',
+            validator(value, callback) {
+              callback(!value || value.trim().length > 0);
+            }
+          },
+          {
+            data: 'status',
+            type: 'dropdown',
+            source: ['啟用', '停用'],
+            allowInvalid: false
+          },
+          {
+            data: 'statusDate',
+            type: 'date',
+            dateFormat: 'YYYY-MM-DD',
+            correctFormat: true,
+            allowEmpty: true
+          }
+        ],
+        stretchH: 'all',
+        rowHeaders: true,
+        licenseKey: 'non-commercial-and-evaluation',
+        height: 'auto',
+        minSpareRows: 1,
+        manualColumnResize: true,
+        manualRowResize: true,
+        className: 'htMiddle'
+      });
+
+      container.__handsontableInstance = hotInstance;
+    }
+
+    function initializeTable(siteId) {
+      if (window.Handsontable) {
+        renderTable(siteId);
+        return;
+      }
+
+      ensureStylesheet();
+
+      let script = document.querySelector('script[data-handsontable-script]');
+
+      if (!script) {
+        script = document.createElement('script');
+        script.src = HANDSONTABLE_SCRIPT_URL;
+        script.dataset.handsontableScript = 'true';
+        script.addEventListener('load', () => {
+          script.dataset.loaded = 'true';
+          renderTable(siteId);
+        }, { once: true });
+        document.head.appendChild(script);
+      } else if (script.dataset.loaded === 'true') {
+        renderTable(siteId);
+      } else {
+        script.addEventListener('load', () => {
+          script.dataset.loaded = 'true';
+          renderTable(siteId);
+        }, { once: true });
+      }
+    }
+
+    function handleSiteChange(event) {
+      const selectedSiteId = event.target.value;
+      currentSiteId = selectedSiteId;
+      if (selectedSiteId) {
+        renderTable(selectedSiteId);
+      }
+    }
+
+    function populateSiteOptions(selectElement) {
+      selectElement.innerHTML = '<option value="" disabled>請選擇站點</option>';
+
+      siteOptions.forEach((option, index) => {
+        const optionElement = document.createElement('option');
+        optionElement.value = option.id;
+        optionElement.textContent = option.name;
+        if (index === 0) {
+          optionElement.selected = true;
+        }
+        selectElement.appendChild(optionElement);
+      });
+    }
+
+    function initialize() {
+      const siteSelect = document.getElementById('siteSelector');
+      if (!siteSelect) {
+        return;
+      }
+
+      populateSiteOptions(siteSelect);
+      currentSiteId = siteSelect.value || currentSiteId;
+      siteSelect.addEventListener('change', handleSiteChange);
+
+      if (currentSiteId) {
+        initializeTable(currentSiteId);
+      }
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initialize, { once: true });
+    } else {
+      initialize();
+    }
+  })();
+</script>
+
+<style>
+  .site-settings {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  .site-settings .page-header {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .site-settings .page-header h1 {
+    margin: 0;
+    font-size: 2rem;
+    color: #111827;
+  }
+
+  .site-settings .page-header p {
+    margin: 0;
+    color: #4b5563;
+    line-height: 1.6;
+  }
+
+  .site-settings .selector-card {
+    background-color: #f9fafb;
+    border-radius: 12px;
+    border: 1px solid #e5e7eb;
+    padding: 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .site-settings .selector-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .site-settings label {
+    font-weight: 600;
+    color: #1f2937;
+  }
+
+  .site-settings .site-select {
+    width: 100%;
+    max-width: 320px;
+    padding: 0.5rem 0.75rem;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    font-size: 1rem;
+    color: #111827;
+    background-color: #ffffff;
+  }
+
+  .site-settings .helper-text {
+    margin: 0;
+    color: #6b7280;
+    font-size: 0.875rem;
+  }
+
+  .site-settings .table-card {
+    background-color: #ffffff;
+    border-radius: 12px;
+    border: 1px solid #e5e7eb;
+    padding: 1rem;
+    box-shadow: 0 10px 30px rgba(15, 23, 42, 0.05);
+  }
+
+  .site-settings .hot-container {
+    width: 100%;
+    min-height: 320px;
+    overflow: hidden;
+  }
+</style>
