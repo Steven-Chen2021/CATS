@@ -22,6 +22,62 @@
       { country: '日本', region: '關東區域', site: '東京辦公室' }
     ];
 
+    const columnDefinitions = [
+      { header: '國家', data: 'country', type: 'text' },
+      { header: '區', data: 'region', type: 'text' },
+      { header: '站點', data: 'site', type: 'text' }
+    ];
+
+    function disconnectObserver(container) {
+      const existingObserver = container.__handsontableResizeObserver;
+      if (existingObserver) {
+        existingObserver.disconnect();
+        container.__handsontableResizeObserver = null;
+      }
+    }
+
+    function attachResizeObserver(container) {
+      if (!window.ResizeObserver) {
+        const resizeHandler = () => {
+          const instance = container.__handsontableInstance;
+          if (!instance) {
+            return;
+          }
+
+          const width = container.clientWidth || container.parentElement?.clientWidth || 0;
+          if (width > 0) {
+            instance.updateSettings({ width });
+            instance.render();
+          }
+        };
+
+        window.addEventListener('resize', resizeHandler, { passive: true });
+        container.__handsontableResizeObserver = {
+          disconnect() {
+            window.removeEventListener('resize', resizeHandler);
+          }
+        };
+        return;
+      }
+
+      const resizeObserver = new ResizeObserver(() => {
+        const instance = container.__handsontableInstance;
+        if (!instance) {
+          return;
+        }
+
+        const width = container.clientWidth || container.parentElement?.clientWidth || 0;
+
+        if (width > 0) {
+          instance.updateSettings({ width });
+          instance.render();
+        }
+      });
+
+      resizeObserver.observe(container);
+      container.__handsontableResizeObserver = resizeObserver;
+    }
+
     function ensureStylesheet() {
       if (document.querySelector('link[data-handsontable-stylesheet]')) {
         return;
@@ -44,24 +100,30 @@
         container.__handsontableInstance.destroy();
       }
 
+      disconnectObserver(container);
+
+      const initialWidth = container.clientWidth || container.parentElement?.clientWidth || 0;
+
       const hot = new window.Handsontable(container, {
-        data: demoData.map((item) => [item.country, item.region, item.site]),
-        colHeaders: ['國家', '區', '站點'],
-        columns: [
-          { data: 0, type: 'text' },
-          { data: 1, type: 'text' },
-          { data: 2, type: 'text' }
-        ],
+        data: demoData,
+        columns: columnDefinitions.map(({ header, ...column }) => column),
+        colHeaders: columnDefinitions.map(({ header }) => header),
         licenseKey: 'non-commercial-and-evaluation',
         stretchH: 'all',
         height: 'auto',
+        width: initialWidth > 0 ? initialWidth : undefined,
         manualColumnResize: true,
         manualRowResize: true,
+        rowHeaders: true,
         readOnly: true,
-        className: 'htMiddle htCenter'
+        className: 'htMiddle',
+        headerClassName: 'htCenter',
+        autoColumnSize: { useHeaders: true }
       });
 
       container.__handsontableInstance = hot;
+
+      attachResizeObserver(container);
     }
 
     function loadHandsontable() {
