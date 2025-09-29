@@ -21,11 +21,6 @@
 
 <script>
   (function () {
-    const HANDSONTABLE_STYLE_URL =
-      'https://cdn.jsdelivr.net/npm/handsontable@14.3.0/dist/handsontable.full.min.css';
-    const HANDSONTABLE_SCRIPT_URL =
-      'https://cdn.jsdelivr.net/npm/handsontable@14.3.0/dist/handsontable.full.min.js';
-
     const siteOptions = [
       { id: 'taipei-hq', name: '台北總部' },
       { id: 'kaohsiung-ops', name: '高雄營運中心' },
@@ -47,18 +42,6 @@
 
     let currentSiteId = siteOptions[0]?.id ?? '';
     let hotInstance = null;
-
-    function ensureStylesheet() {
-      if (document.querySelector('link[data-handsontable-stylesheet]')) {
-        return;
-      }
-
-      const stylesheet = document.createElement('link');
-      stylesheet.rel = 'stylesheet';
-      stylesheet.href = HANDSONTABLE_STYLE_URL;
-      stylesheet.dataset.handsontableStylesheet = 'true';
-      document.head.appendChild(stylesheet);
-    }
 
     function getSiteData(siteId) {
       if (!siteLocationData[siteId]) {
@@ -122,32 +105,12 @@
     }
 
     function initializeTable(siteId) {
-      if (window.Handsontable) {
-        renderTable(siteId);
+      if (!window.Handsontable) {
+        console.error('Handsontable 尚未預先載入。');
         return;
       }
 
-      ensureStylesheet();
-
-      let script = document.querySelector('script[data-handsontable-script]');
-
-      if (!script) {
-        script = document.createElement('script');
-        script.src = HANDSONTABLE_SCRIPT_URL;
-        script.dataset.handsontableScript = 'true';
-        script.addEventListener('load', () => {
-          script.dataset.loaded = 'true';
-          renderTable(siteId);
-        }, { once: true });
-        document.head.appendChild(script);
-      } else if (script.dataset.loaded === 'true') {
-        renderTable(siteId);
-      } else {
-        script.addEventListener('load', () => {
-          script.dataset.loaded = 'true';
-          renderTable(siteId);
-        }, { once: true });
-      }
+      renderTable(siteId);
     }
 
     function handleSiteChange(event) {
