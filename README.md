@@ -50,6 +50,12 @@ Use any credentials to sign in. The app stores the supplied user ID and
 verification code in `localStorage` and swaps to a dashboard layout with a
 placeholder navigation bar.
 
+> **Handsontable dependency** – Several admin pages now render interactive
+> tables with [Handsontable](https://handsontable.com/). The project loads the
+> library and its styles from the official CDN at runtime, so make sure your
+> development environment has internet access when visiting those pages. No
+> extra installation steps are required beyond `npm install` above.
+
 ---
 
 ## 🧭 Repository structure
