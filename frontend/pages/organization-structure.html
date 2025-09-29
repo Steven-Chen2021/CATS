@@ -11,11 +11,6 @@
 
 <script>
   (function () {
-    const HANDSONTABLE_STYLE_URL =
-      'https://cdn.jsdelivr.net/npm/handsontable@14.3.0/dist/handsontable.full.min.css';
-    const HANDSONTABLE_SCRIPT_URL =
-      'https://cdn.jsdelivr.net/npm/handsontable@14.3.0/dist/handsontable.full.min.js';
-
     const demoData = [
       { country: '台灣', region: '北部區域', site: '台北總部' },
       { country: '台灣', region: '南部區域', site: '高雄營運中心' },
@@ -78,21 +73,12 @@
       container.__handsontableResizeObserver = resizeObserver;
     }
 
-    function ensureStylesheet() {
-      if (document.querySelector('link[data-handsontable-stylesheet]')) {
-        return;
-      }
-
-      const stylesheet = document.createElement('link');
-      stylesheet.rel = 'stylesheet';
-      stylesheet.href = HANDSONTABLE_STYLE_URL;
-      stylesheet.dataset.handsontableStylesheet = 'true';
-      document.head.appendChild(stylesheet);
-    }
-
     function initializeTable() {
       const container = document.getElementById('organizationStructureTable');
       if (!container || !window.Handsontable) {
+        if (!window.Handsontable) {
+          console.error('Handsontable 尚未預先載入。');
+        }
         return;
       }
 
@@ -126,34 +112,7 @@
       attachResizeObserver(container);
     }
 
-    function loadHandsontable() {
-      if (window.Handsontable) {
-        initializeTable();
-        return;
-      }
-
-      ensureStylesheet();
-
-      let script = document.querySelector('script[data-handsontable-script]');
-
-      if (!script) {
-        script = document.createElement('script');
-        script.src = HANDSONTABLE_SCRIPT_URL;
-        script.dataset.handsontableScript = 'true';
-        script.addEventListener('load', initializeTable, { once: true });
-        document.head.appendChild(script);
-      } else if (script.dataset.loaded === 'true') {
-        initializeTable();
-      } else {
-        script.addEventListener('load', initializeTable, { once: true });
-      }
-
-      script.addEventListener('load', () => {
-        script.dataset.loaded = 'true';
-      }, { once: true });
-    }
-
-    loadHandsontable();
+    initializeTable();
   })();
 </script>
 
