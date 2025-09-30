@@ -1,4 +1,570 @@
-<section class="page-content">
-  <h1>固定燃燒排放源 (發電機)</h1>
-  <p>彙整並追蹤固定燃燒設備的活動數據與排放量。</p>
+<section class="page-content stationary-combustion-page">
+  <header class="page-header">
+    <div class="page-header__text">
+      <h1>固定燃燒排放源活動蒐集</h1>
+      <p>管理固定燃燒排放源的活動資料與排放係數，支援審核流程與資料維護。</p>
+    </div>
+    <button id="addCombustionRecordButton" class="primary-action" type="button">新增活動資料</button>
+  </header>
+
+  <section class="info-card" aria-labelledby="stationaryInfoHeading">
+    <div class="info-card__row">
+      <div class="info-field">
+        <dt id="stationaryInfoHeading">盤查年份</dt>
+        <dd id="stationaryInventoryYear">2024 年</dd>
+      </div>
+      <div class="info-field">
+        <dt>資料審核狀態</dt>
+        <dd>
+          <span id="stationaryAuditStatus" class="status-badge status-badge--draft" aria-live="polite">草稿</span>
+        </dd>
+      </div>
+      <div class="info-field info-field--actions">
+        <dt class="sr-only">審核操作</dt>
+        <dd>
+          <div id="stationaryAuditActions" class="button-group" role="group" aria-label="審核操作"></div>
+        </dd>
+      </div>
+    </div>
+    <p id="stationaryAuditMessage" class="info-card__message" role="status" aria-live="polite"></p>
+  </section>
+
+  <section class="table-card">
+    <div class="table-card__header">
+      <h2>活動資料清單</h2>
+      <p>系統依輸入資料與排放係數自動計算溫室氣體排放量。</p>
+    </div>
+    <div class="table-scroll">
+      <table class="data-table" aria-describedby="stationaryInventoryYear">
+        <thead>
+          <tr>
+            <th scope="col" class="col-actions">操作</th>
+            <th scope="col">站點名稱</th>
+            <th scope="col">據點名稱</th>
+            <th scope="col">活動/設備</th>
+            <th scope="col">編號</th>
+            <th scope="col">油品類型</th>
+            <th scope="col">月份</th>
+            <th scope="col">活動數據 (採購量)</th>
+            <th scope="col">活動數據單位</th>
+            <th scope="col">CO₂ 排放係數</th>
+            <th scope="col">CO₂ 排放係數單位</th>
+            <th scope="col">CO₂ GWP</th>
+            <th scope="col">CH₄ 排放係數</th>
+            <th scope="col">CH₄ 排放係數單位</th>
+            <th scope="col">CH₄ GWP</th>
+            <th scope="col">N₂O 排放係數</th>
+            <th scope="col">N₂O 排放係數單位</th>
+            <th scope="col">N₂O GWP</th>
+            <th scope="col">溫室氣體排放量 (kg CO₂e)</th>
+            <th scope="col">活動數據來源</th>
+            <th scope="col">係數來源</th>
+            <th scope="col">備註</th>
+          </tr>
+        </thead>
+        <tbody id="stationaryTableBody"></tbody>
+      </table>
+    </div>
+    <p id="stationaryEmptyMessage" class="table-card__empty" hidden>目前尚無活動資料，請新增資料。</p>
+  </section>
+
+  <section class="page-hint">
+    <h2>填寫說明</h2>
+    <ul>
+      <li>站點名稱與活動設備編號由系統依排放源設定自動帶入。</li>
+      <li>排放係數與 GWP 由計算係數表依條件自動套用，無須手動輸入。</li>
+      <li>活動數據欄位僅允許輸入 0 以上之數值，請確保來源說明完整。</li>
+    </ul>
+  </section>
+
+  <div id="stationaryAddModal" class="modal" aria-hidden="true">
+    <div class="modal__overlay" data-close-modal></div>
+    <div class="modal__dialog" role="dialog" aria-modal="true" aria-labelledby="stationaryAddModalTitle">
+      <header class="modal__header">
+        <h2 id="stationaryAddModalTitle">新增固定燃燒活動資料</h2>
+        <button class="modal__close" type="button" data-close-modal aria-label="關閉新增視窗"></button>
+      </header>
+      <form id="stationaryAddForm" class="modal__body">
+        <div class="form-grid">
+          <label class="form-field">
+            <span class="form-label">據點名稱</span>
+            <select id="stationaryModalDepot" name="depot" required></select>
+          </label>
+          <label class="form-field">
+            <span class="form-label">活動/設備</span>
+            <select id="stationaryModalActivity" name="activity" required></select>
+          </label>
+          <label class="form-field">
+            <span class="form-label">油品類型</span>
+            <select id="stationaryModalFuel" name="fuelType" required></select>
+          </label>
+          <label class="form-field">
+            <span class="form-label">月份</span>
+            <select id="stationaryModalMonth" name="month" required></select>
+          </label>
+          <label class="form-field">
+            <span class="form-label">活動數據 (採購量)</span>
+            <input id="stationaryModalQuantity" name="quantity" type="number" inputmode="decimal" min="0" step="0.01" required />
+          </label>
+          <label class="form-field">
+            <span class="form-label">活動數據單位</span>
+            <select id="stationaryModalUnit" name="unit" required>
+              <option value="公升">公升</option>
+              <option value="加侖">加侖</option>
+            </select>
+          </label>
+          <label class="form-field form-field--span">
+            <span class="form-label">活動數據來源</span>
+            <input id="stationaryModalSource" name="dataSource" type="text" required placeholder="例如：採購系統匯出" />
+          </label>
+          <div class="form-field form-field--span">
+            <span class="form-label">活動附件 (選填)</span>
+            <div id="stationaryModalDropZone" class="drop-zone">
+              <p>拖曳檔案至此或 <button id="stationaryModalBrowse" type="button">選擇檔案</button></p>
+              <input id="stationaryModalAttachments" name="attachments" type="file" multiple hidden />
+              <ul id="stationaryModalAttachmentList" class="attachment-list" aria-live="polite"></ul>
+            </div>
+          </div>
+          <label class="form-field form-field--span">
+            <span class="form-label">備註 (選填)</span>
+            <textarea id="stationaryModalNotes" name="notes" rows="2" placeholder="可補充燃料用途或採購資訊"></textarea>
+          </label>
+        </div>
+        <p id="stationaryModalError" class="form-error" role="alert"></p>
+        <footer class="modal__footer">
+          <button class="secondary-button" type="button" data-close-modal>取消</button>
+          <button class="primary-button" type="submit">儲存</button>
+        </footer>
+      </form>
+    </div>
+  </div>
+
+  <div id="stationaryReturnModal" class="modal" aria-hidden="true">
+    <div class="modal__overlay" data-close-modal></div>
+    <div class="modal__dialog" role="dialog" aria-modal="true" aria-labelledby="stationaryReturnModalTitle">
+      <header class="modal__header">
+        <h2 id="stationaryReturnModalTitle">退回原因</h2>
+        <button class="modal__close" type="button" data-close-modal aria-label="關閉退回視窗"></button>
+      </header>
+      <form id="stationaryReturnForm" class="modal__body">
+        <label class="form-field form-field--span">
+          <span class="form-label">請輸入退回原因</span>
+          <textarea id="stationaryReturnReason" name="returnReason" rows="4" required placeholder="請說明退回原因"></textarea>
+        </label>
+        <p id="stationaryReturnError" class="form-error" role="alert"></p>
+        <footer class="modal__footer">
+          <button class="secondary-button" type="button" data-close-modal>取消</button>
+          <button class="primary-button" type="submit">送出</button>
+        </footer>
+      </form>
+    </div>
+  </div>
 </section>
+
+<style>
+.stationary-combustion-page {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.page-header h1 {
+  margin: 0;
+  font-size: 1.75rem;
+}
+
+.page-header p {
+  margin: 0.25rem 0 0;
+  color: #4b5563;
+}
+
+.page-header__text {
+  flex: 1;
+}
+
+.primary-action {
+  align-self: flex-start;
+  padding: 0.65rem 1.25rem;
+  background: #2563eb;
+  color: #fff;
+  border: none;
+  border-radius: 999px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 10px 25px rgba(37, 99, 235, 0.25);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.primary-action:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 14px 28px rgba(37, 99, 235, 0.3);
+}
+
+.info-card {
+  background: #fff;
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.12);
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.info-card__row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  align-items: center;
+}
+
+.info-field dt {
+  font-size: 0.9rem;
+  color: #6b7280;
+  margin: 0 0 0.25rem;
+}
+
+.info-field dd {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.info-field--actions {
+  justify-self: flex-end;
+}
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.35rem 0.75rem;
+  border-radius: 999px;
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.status-badge::before {
+  content: '';
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.status-badge--draft {
+  color: #2563eb;
+  background: rgba(37, 99, 235, 0.15);
+}
+
+.status-badge--submitted {
+  color: #f59e0b;
+  background: rgba(245, 158, 11, 0.18);
+}
+
+.status-badge--l1 {
+  color: #10b981;
+  background: rgba(16, 185, 129, 0.16);
+}
+
+.status-badge--l2 {
+  color: #1f2937;
+  background: rgba(31, 41, 55, 0.12);
+}
+
+.button-group {
+  display: inline-flex;
+  gap: 0.5rem;
+}
+
+.secondary-button,
+.primary-button {
+  border-radius: 999px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  padding: 0.5rem 1.25rem;
+  cursor: pointer;
+  border: none;
+}
+
+.secondary-button {
+  background: #e5e7eb;
+  color: #374151;
+}
+
+.secondary-button:hover {
+  background: #d1d5db;
+}
+
+.primary-button {
+  background: #2563eb;
+  color: #fff;
+  box-shadow: 0 8px 18px rgba(37, 99, 235, 0.25);
+}
+
+.primary-button:hover {
+  box-shadow: 0 12px 24px rgba(37, 99, 235, 0.35);
+}
+
+.table-card {
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 16px 40px rgba(15, 23, 42, 0.12);
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.table-card__header h2 {
+  margin: 0;
+}
+
+.table-card__header p {
+  margin: 0.25rem 0 0;
+  color: #6b7280;
+}
+
+.table-scroll {
+  overflow-x: auto;
+}
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.95rem;
+}
+
+.data-table thead th {
+  background: #f3f4f6;
+  text-align: left;
+  padding: 0.75rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.data-table tbody td {
+  padding: 0.65rem 0.75rem;
+  border-top: 1px solid #e5e7eb;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+
+.data-table tbody tr:nth-child(even) {
+  background: #f9fafb;
+}
+
+.col-actions {
+  width: 72px;
+}
+
+.editable-cell {
+  background: #fef9c3;
+}
+
+.table-card__empty {
+  text-align: center;
+  color: #6b7280;
+  margin: 0;
+}
+
+.page-hint {
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.1);
+  padding: 1.25rem 1.5rem;
+}
+
+.page-hint h2 {
+  margin: 0 0 0.5rem;
+}
+
+.modal {
+  position: fixed;
+  inset: 0;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal[aria-hidden='false'] {
+  display: flex;
+}
+
+.modal__overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.45);
+}
+
+.modal__dialog {
+  position: relative;
+  background: #fff;
+  border-radius: 16px;
+  width: min(720px, 96%);
+  max-height: 90vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 24px 48px rgba(15, 23, 42, 0.2);
+}
+
+.modal__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.modal__body {
+  padding: 1.25rem 1.5rem;
+  overflow-y: auto;
+}
+
+.modal__footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  padding: 1rem 1.5rem 1.25rem;
+  border-top: 1px solid #e5e7eb;
+}
+
+.modal__close {
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  position: relative;
+}
+
+.modal__close::before,
+.modal__close::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 16px;
+  height: 2px;
+  background: #6b7280;
+  transform-origin: center;
+}
+
+.modal__close::before {
+  transform: translate(-50%, -50%) rotate(45deg);
+}
+
+.modal__close::after {
+  transform: translate(-50%, -50%) rotate(-45deg);
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1rem 1.25rem;
+}
+
+.form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.form-field--span {
+  grid-column: 1 / -1;
+}
+
+.form-label {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #374151;
+}
+
+.form-field input,
+.form-field select,
+.form-field textarea {
+  border: 1px solid #d1d5db;
+  border-radius: 10px;
+  padding: 0.6rem 0.75rem;
+  font-size: 0.95rem;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.form-field input:focus,
+.form-field select:focus,
+.form-field textarea:focus {
+  outline: none;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
+}
+
+.form-error {
+  color: #dc2626;
+  min-height: 1.25rem;
+  margin: 0.5rem 0 0;
+}
+
+.drop-zone {
+  border: 2px dashed #9ca3af;
+  border-radius: 12px;
+  padding: 1rem;
+  text-align: center;
+  color: #6b7280;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.drop-zone.is-dragover {
+  border-color: #2563eb;
+  background: rgba(37, 99, 235, 0.08);
+}
+
+.drop-zone button {
+  background: none;
+  color: #2563eb;
+  border: none;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.attachment-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  text-align: left;
+  color: #4b5563;
+}
+
+.attachment-list li {
+  padding: 0.25rem 0;
+}
+
+@media (max-width: 768px) {
+  .page-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .info-field--actions {
+    justify-self: stretch;
+  }
+
+  .button-group {
+    width: 100%;
+  }
+
+  .button-group button {
+    flex: 1;
+  }
+}
+</style>

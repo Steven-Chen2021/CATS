@@ -224,6 +224,13 @@ import('./page-inits/upstream-logistics-consumables')
         m.initUpstreamLogisticsConsumables)
   )
   .catch(() => {});
+import('./page-inits/stationary-combustion')
+  .then(
+    (m) =>
+      (pageInitializers['pages/stationary-combustion.html'] =
+        m.initStationaryCombustion)
+  )
+  .catch(() => {});
 
 const activeHref = ref('');
 const activeContent = ref('');
