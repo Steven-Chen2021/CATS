@@ -200,7 +200,16 @@ const pageInitializers: Record<string, () => void> = {};
 
 // Lazy-load initializer modules and register them keyed by href used in the menu
 import('./page-inits/organization-structure').then((m) => (pageInitializers['pages/organization-structure.html'] = m.initOrganizationStructure)).catch(() => {});
-import('./page-inits/site-settings').then((m) => (pageInitializers['pages/site-settings.html'] = m.initSiteSettings)).catch(() => {});
+import('./page-inits/site-settings')
+  .then((m) => (pageInitializers['pages/site-settings.html'] = m.initSiteSettings))
+  .catch(() => {});
+import('./page-inits/emission-source-types')
+  .then(
+    (m) =>
+      (pageInitializers['pages/emission-source-types.html'] =
+        m.initEmissionSourceTypes)
+  )
+  .catch(() => {});
 
 const activeHref = ref('');
 const activeContent = ref('');
