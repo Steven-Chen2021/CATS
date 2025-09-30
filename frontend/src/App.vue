@@ -217,6 +217,13 @@ import('./page-inits/emission-source-site-association')
         m.initEmissionSourceSiteAssociation)
   )
   .catch(() => {});
+import('./page-inits/upstream-logistics-consumables')
+  .then(
+    (m) =>
+      (pageInitializers['pages/upstream-logistics-consumables.html'] =
+        m.initUpstreamLogisticsConsumables)
+  )
+  .catch(() => {});
 
 const activeHref = ref('');
 const activeContent = ref('');
