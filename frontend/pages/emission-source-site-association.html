@@ -1,4 +1,275 @@
-<section class="page-content">
-  <h1>排放源與據點關聯管理</h1>
-  <p>設定各排放源與實際營運據點之間的對應關係。</p>
+<section class="page-content emission-source-association" aria-labelledby="emissionSourceAssociationTitle">
+  <header class="page-header">
+    <h1 id="emissionSourceAssociationTitle">排放源與據點關聯管理</h1>
+    <p>
+      針對特定盤查年度與據點挑選適用的排放源，並建立關聯設定供後續排放量盤點作業使用。
+    </p>
+  </header>
+
+  <article class="filter-card" aria-label="條件篩選">
+    <form id="siteAssociationFilters" class="filter-form">
+      <div class="filter-grid">
+        <label class="filter-field" for="inventoryYearSelect">
+          <span class="field-label">盤查年度</span>
+          <select id="inventoryYearSelect" name="inventoryYear" required>
+            <option value="">請選擇盤查年度</option>
+          </select>
+        </label>
+        <label class="filter-field" for="countrySelect">
+          <span class="field-label">國家</span>
+          <select id="countrySelect" name="country" required>
+            <option value="">請選擇國家</option>
+          </select>
+        </label>
+        <label class="filter-field" for="regionSelect">
+          <span class="field-label">區域</span>
+          <select id="regionSelect" name="region" required disabled>
+            <option value="">請先選擇國家</option>
+          </select>
+        </label>
+        <label class="filter-field" for="siteSelect">
+          <span class="field-label">站點</span>
+          <select id="siteSelect" name="site" required disabled>
+            <option value="">請先選擇區域</option>
+          </select>
+        </label>
+      </div>
+      <div class="filter-actions">
+        <p id="filterErrorMessage" class="filter-error" role="alert" aria-live="assertive"></p>
+        <button type="submit" class="primary-action">確認</button>
+      </div>
+    </form>
+  </article>
+
+  <article
+    id="associationResultCard"
+    class="result-card is-inactive"
+    aria-labelledby="emissionSourceListTitle"
+    aria-live="polite"
+  >
+    <header class="result-header">
+      <div>
+        <h2 id="emissionSourceListTitle">可關聯的排放源</h2>
+        <p id="selectionSummary" class="selection-summary">
+          請先設定並確認條件以載入可關聯的排放源。
+        </p>
+      </div>
+    </header>
+
+    <div id="emissionSourceList" class="emission-source-list" role="group" aria-labelledby="emissionSourceListTitle"></div>
+
+    <footer class="result-actions">
+      <button type="button" id="saveAssociationButton" class="primary-action" disabled>儲存設定</button>
+      <p id="saveStatusMessage" class="status-message" role="status" aria-live="polite"></p>
+    </footer>
+  </article>
 </section>
+
+<style>
+  .emission-source-association {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    color: #1f2937;
+  }
+
+  .emission-source-association .page-header {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .emission-source-association .page-header h1 {
+    margin: 0;
+    font-size: 2rem;
+    color: #111827;
+  }
+
+  .emission-source-association .page-header p {
+    margin: 0;
+    color: #4b5563;
+    line-height: 1.6;
+  }
+
+  .filter-card,
+  .result-card {
+    background-color: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+  }
+
+  .filter-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+  }
+
+  .filter-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1rem;
+  }
+
+  .filter-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+  }
+
+  .field-label {
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: #374151;
+  }
+
+  select {
+    appearance: none;
+    width: 100%;
+    padding: 0.55rem 0.75rem;
+    border-radius: 8px;
+    border: 1px solid #d1d5db;
+    background-color: #ffffff;
+    font-size: 1rem;
+    color: #1f2937;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  select:focus {
+    outline: none;
+    border-color: #2563eb;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+  }
+
+  .filter-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .filter-error {
+    margin: 0;
+    color: #dc2626;
+    min-height: 1.25rem;
+    flex: 1;
+  }
+
+  .primary-action {
+    align-self: flex-end;
+    background: linear-gradient(135deg, #2563eb, #1d4ed8);
+    color: #ffffff;
+    border: none;
+    border-radius: 10px;
+    padding: 0.65rem 1.5rem;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .primary-action:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+    box-shadow: none;
+  }
+
+  .primary-action:not(:disabled):hover {
+    transform: translateY(-1px);
+    box-shadow: 0 12px 20px rgba(29, 78, 216, 0.2);
+  }
+
+  .result-card.is-inactive {
+    display: none;
+  }
+
+  .result-header h2 {
+    margin: 0;
+    font-size: 1.4rem;
+    color: #111827;
+  }
+
+  .selection-summary {
+    margin: 0.35rem 0 0;
+    color: #4b5563;
+  }
+
+  .emission-source-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .emission-source-list:empty::before {
+    content: '目前沒有可用的排放源，請先於排放源類型設定中建立資料。';
+    color: #6b7280;
+  }
+
+  .source-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.85rem;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    padding: 0.75rem 1rem;
+    background-color: #f9fafb;
+    transition: border-color 0.2s ease, background-color 0.2s ease;
+  }
+
+  .source-row input[type='checkbox'] {
+    margin-top: 0.2rem;
+  }
+
+  .source-row:hover {
+    border-color: #c7d2fe;
+    background-color: #eef2ff;
+  }
+
+  .source-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
+  .source-name {
+    font-weight: 600;
+    color: #1f2937;
+  }
+
+  .source-meta {
+    font-size: 0.9rem;
+    color: #6b7280;
+  }
+
+  .result-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 0.75rem;
+  }
+
+  .status-message {
+    margin: 0;
+    color: #2563eb;
+  }
+
+  @media (max-width: 640px) {
+    .primary-action {
+      width: 100%;
+    }
+
+    .filter-actions {
+      flex-direction: column;
+      align-items: stretch;
+    }
+
+    .filter-error {
+      text-align: left;
+    }
+  }
+</style>
