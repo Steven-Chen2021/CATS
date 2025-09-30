@@ -179,6 +179,7 @@ export function initBusinessTravel() {
   const dropZone = document.getElementById('attachmentDropZone');
   const browseButton = document.getElementById('browseAttachmentButton');
   const addError = document.getElementById('addRecordError');
+  const tableAddButton = document.getElementById('tableAddTravelButton');
   const reasonModal = document.getElementById('returnReasonModal');
   const reasonForm = document.getElementById('returnReasonForm') as HTMLFormElement | null;
   const reasonInput = document.getElementById('returnReasonInput') as HTMLTextAreaElement | null;
@@ -202,6 +203,7 @@ export function initBusinessTravel() {
     !dropZone ||
     !browseButton ||
     !addError ||
+    !tableAddButton ||
     !reasonModal ||
     !reasonForm ||
     !reasonInput ||
@@ -220,7 +222,10 @@ export function initBusinessTravel() {
   renderStatus();
   syncCabinAvailability(transportSelect, cabinSelect);
 
-  addButton.addEventListener('click', () => openModal(addModal));
+  const openAddRecordModal = () => openModal(addModal);
+
+  addButton.addEventListener('click', openAddRecordModal);
+  tableAddButton.addEventListener('click', openAddRecordModal);
   addModal.querySelectorAll('[data-close-modal]').forEach((element) => {
     element.addEventListener('click', () => closeModal(addModal));
   });
@@ -421,6 +426,8 @@ export function initBusinessTravel() {
     const row = document.createElement('tr');
     row.dataset.id = record.id;
 
+    row.appendChild(createActionCell());
+
     row.appendChild(createTextCell(record.company));
 
     row.appendChild(
@@ -600,6 +607,12 @@ export function initBusinessTravel() {
     return row;
   }
 
+  function createActionCell() {
+    const cell = document.createElement('td');
+    cell.className = 'table-action-cell';
+    return cell;
+  }
+
   function createTextCell(text: string) {
     const cell = document.createElement('td');
     cell.textContent = text;
@@ -679,7 +692,8 @@ export function initBusinessTravel() {
     placeholder?: string
   ) {
     select.innerHTML = '';
-    if (placeholder) {
+    const shouldUsePlaceholder = Boolean(placeholder) && options.length > 1;
+    if (shouldUsePlaceholder) {
       const option = document.createElement('option');
       option.value = '';
       option.textContent = placeholder;
@@ -693,6 +707,9 @@ export function initBusinessTravel() {
       option.textContent = item.label;
       select.appendChild(option);
     });
+    if (!shouldUsePlaceholder && options.length > 0) {
+      select.value = options[0].value;
+    }
   }
 
   function createSelect(options: string[], value: string) {

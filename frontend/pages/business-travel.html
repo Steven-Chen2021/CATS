@@ -43,6 +43,16 @@
       <table class="data-table travel-table" aria-describedby="inventoryYearDisplay">
         <thead>
           <tr>
+            <th scope="col" class="table-action-column">
+              <button
+                id="tableAddTravelButton"
+                class="table-add-button"
+                type="button"
+                aria-label="新增活動資料"
+              >
+                新增
+              </button>
+            </th>
             <th scope="col">公司名稱</th>
             <th scope="col">據點名稱</th>
             <th scope="col">出發日期</th>
@@ -357,6 +367,43 @@
 .data-table td {
   background: #ffffff;
   color: #1f2933;
+}
+
+.table-action-column {
+  width: 96px;
+  text-align: center;
+}
+
+.table-add-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: 0.35rem 0.75rem;
+  border-radius: 999px;
+  border: 1px solid #2563eb;
+  background: #f8fafc;
+  color: #2563eb;
+  font-weight: 600;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.table-add-button:hover {
+  background: #2563eb;
+  color: #ffffff;
+  box-shadow: 0 6px 16px rgba(37, 99, 235, 0.25);
+}
+
+.table-add-button:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.3);
+}
+
+.table-action-cell {
+  background: #f9fafb;
+  text-align: center;
 }
 
 .data-table td.is-editable-cell {
