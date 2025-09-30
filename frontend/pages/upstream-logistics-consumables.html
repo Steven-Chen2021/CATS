@@ -1,4 +1,591 @@
-<section class="page-content">
-  <h1>上游運輸物流經常耗材</h1>
-  <p>記錄物流作業所需耗材的使用量與排放影響。</p>
+<section class="page-content upstream-consumables-page">
+  <header class="page-header">
+    <div class="page-header__text">
+      <h1>上游運輸物流經常耗材</h1>
+      <p>管理物流作業耗材使用與運輸排放資訊，支援審核流程與活動資料維護。</p>
+    </div>
+    <button id="addRecordButton" class="primary-action" type="button">新增活動資料</button>
+  </header>
+
+  <section class="info-card" aria-labelledby="infoCardHeading">
+    <div class="info-card__row">
+      <div class="info-field">
+        <dt id="infoCardHeading">盤查年份</dt>
+        <dd id="inventoryYearDisplay">2024 年</dd>
+      </div>
+      <div class="info-field">
+        <dt>資料審核狀態</dt>
+        <dd>
+          <span id="auditStatusLabel" class="status-badge status-badge--draft" aria-live="polite">草稿</span>
+        </dd>
+      </div>
+      <div class="info-field info-field--actions">
+        <dt class="sr-only">審核操作</dt>
+        <dd>
+          <div id="auditActionButtons" class="button-group" role="group" aria-label="審核操作"></div>
+        </dd>
+      </div>
+    </div>
+    <p id="auditStatusMessage" class="info-card__message" role="status" aria-live="polite"></p>
+  </section>
+
+  <section class="table-card">
+    <div class="table-card__header">
+      <h2>活動資料清單</h2>
+      <p>系統自動依據輸入資料計算重量與排放數值。</p>
+    </div>
+    <div class="table-scroll">
+      <table class="data-table" aria-describedby="inventoryYearDisplay">
+        <thead>
+          <tr>
+            <th scope="col">站點名稱</th>
+            <th scope="col">據點名稱</th>
+            <th scope="col">月份</th>
+            <th scope="col">物流業經常耗材品項</th>
+            <th scope="col">運具</th>
+            <th scope="col">運具用油類型</th>
+            <th scope="col">貨物起點</th>
+            <th scope="col">貨物迄點</th>
+            <th scope="col">品項數量</th>
+            <th scope="col">單品重量 (kg)</th>
+            <th scope="col">貨物總重量 (公噸)</th>
+            <th scope="col">運輸距離 (km)</th>
+            <th scope="col">排放係數 (kg CO₂/延噸公里)</th>
+            <th scope="col">排放量 (kg CO₂e)</th>
+            <th scope="col">活動數據來源</th>
+            <th scope="col">排放係數來源</th>
+          </tr>
+        </thead>
+        <tbody id="consumablesTableBody"></tbody>
+      </table>
+    </div>
+    <p id="emptyTableMessage" class="table-card__empty" hidden>目前尚無活動資料，請新增資料列。</p>
+  </section>
+
+  <section class="page-hint">
+    <h2>填寫說明</h2>
+    <ul>
+      <li>站點名稱由系統依登入帳號自動帶入，使用者無須手動輸入。</li>
+      <li>貨物總重量、排放係數與排放量皆由系統自動計算。</li>
+      <li>品項數量、單品重量與運輸距離欄位僅允許輸入 0 以上之數值。</li>
+    </ul>
+  </section>
+
+  <div id="addRecordModal" class="modal" aria-hidden="true">
+    <div class="modal__overlay" data-close-modal></div>
+    <div class="modal__dialog" role="dialog" aria-modal="true" aria-labelledby="addRecordModalTitle">
+      <header class="modal__header">
+        <h2 id="addRecordModalTitle">新增活動資料</h2>
+        <button class="modal__close" type="button" data-close-modal aria-label="關閉新增視窗"></button>
+      </header>
+      <form id="addRecordForm" class="modal__body">
+        <div class="form-grid">
+          <label class="form-field">
+            <span class="form-label">據點名稱</span>
+            <select name="site" id="modalSiteSelect" required></select>
+          </label>
+          <label class="form-field">
+            <span class="form-label">月份</span>
+            <select name="month" id="modalMonthSelect" required></select>
+          </label>
+          <label class="form-field">
+            <span class="form-label">物流業經常耗材品項</span>
+            <select name="item" id="modalItemSelect" required></select>
+          </label>
+          <label class="form-field">
+            <span class="form-label">運具</span>
+            <select name="vehicle" id="modalVehicleSelect" required></select>
+          </label>
+          <label class="form-field">
+            <span class="form-label">運具用油類型</span>
+            <select name="fuelType" id="modalFuelSelect" required></select>
+          </label>
+          <label class="form-field">
+            <span class="form-label">貨物起點</span>
+            <input name="origin" type="text" required placeholder="例如：台北市" />
+          </label>
+          <label class="form-field">
+            <span class="form-label">貨物迄點</span>
+            <input name="destination" type="text" required placeholder="例如：高雄市" />
+          </label>
+          <label class="form-field">
+            <span class="form-label">品項數量</span>
+            <input name="quantity" type="number" inputmode="decimal" min="0" step="1" required />
+          </label>
+          <label class="form-field">
+            <span class="form-label">單品重量 (kg)</span>
+            <input name="unitWeight" id="unitWeightInput" type="number" inputmode="decimal" min="0" step="0.01" required />
+          </label>
+          <label class="form-field">
+            <span class="form-label">運輸距離 (km)</span>
+            <input name="distance" type="number" inputmode="decimal" min="0" step="0.1" required />
+          </label>
+          <label class="form-field form-field--span">
+            <span class="form-label">活動數據來源</span>
+            <input name="dataSource" type="text" required placeholder="例如：物流系統匯出" />
+          </label>
+          <label class="form-field form-field--span">
+            <span class="form-label">備註 (選填)</span>
+            <textarea name="notes" rows="2" placeholder="可補充計算或資料來源說明"></textarea>
+          </label>
+          <div class="form-field form-field--span">
+            <span class="form-label">活動附件 (選填)</span>
+            <div id="attachmentDropZone" class="drop-zone">
+              <p>拖曳檔案至此或 <button id="browseAttachmentButton" type="button">選擇檔案</button></p>
+              <input id="attachmentInput" name="attachments" type="file" multiple hidden />
+              <ul id="attachmentList" class="attachment-list" aria-live="polite"></ul>
+            </div>
+          </div>
+        </div>
+        <p id="addRecordError" class="form-error" role="alert"></p>
+        <footer class="modal__footer">
+          <button class="secondary-button" type="button" data-close-modal>取消</button>
+          <button class="primary-button" type="submit">儲存</button>
+        </footer>
+      </form>
+    </div>
+  </div>
+
+  <div id="returnReasonModal" class="modal" aria-hidden="true">
+    <div class="modal__overlay" data-close-modal></div>
+    <div class="modal__dialog" role="dialog" aria-modal="true" aria-labelledby="returnReasonModalTitle">
+      <header class="modal__header">
+        <h2 id="returnReasonModalTitle">退回原因</h2>
+        <button class="modal__close" type="button" data-close-modal aria-label="關閉退回視窗"></button>
+      </header>
+      <form id="returnReasonForm" class="modal__body">
+        <label class="form-field form-field--span">
+          <span class="form-label">請輸入退回原因</span>
+          <textarea id="returnReasonInput" name="returnReason" rows="4" required></textarea>
+        </label>
+        <p id="returnReasonError" class="form-error" role="alert"></p>
+        <footer class="modal__footer">
+          <button class="secondary-button" type="button" data-close-modal>取消</button>
+          <button class="primary-button" type="submit">送出</button>
+        </footer>
+      </form>
+    </div>
+  </div>
 </section>
+
+<style>
+.upstream-consumables-page {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.page-header h1 {
+  margin: 0;
+  font-size: 1.75rem;
+}
+
+.page-header p {
+  margin: 0.25rem 0 0;
+  color: #4b5563;
+}
+
+.page-header__text {
+  flex: 1;
+}
+
+.primary-action {
+  align-self: flex-start;
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  border: none;
+  color: #ffffff;
+  font-weight: 600;
+  padding: 0.65rem 1.5rem;
+  border-radius: 999px;
+  cursor: pointer;
+  box-shadow: 0 10px 24px rgba(37, 99, 235, 0.2);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.primary-action:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 14px 28px rgba(37, 99, 235, 0.25);
+}
+
+.info-card {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 1.25rem 1.5rem;
+  box-shadow: 0 16px 40px rgba(15, 23, 42, 0.08);
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.info-card__row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 1rem;
+  align-items: center;
+}
+
+.info-field dt {
+  font-size: 0.9rem;
+  color: #6b7280;
+  margin-bottom: 0.25rem;
+}
+
+.info-field dd {
+  margin: 0;
+  font-weight: 600;
+  color: #111827;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.info-field--actions {
+  justify-self: flex-end;
+}
+
+.button-group {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.info-card__message {
+  margin: 0;
+  min-height: 1.25rem;
+  color: #2563eb;
+  font-size: 0.95rem;
+}
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  border-radius: 999px;
+  padding: 0.35rem 0.75rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.status-badge::before {
+  content: '';
+  display: inline-block;
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 999px;
+  background: currentColor;
+}
+
+.status-badge--draft {
+  color: #1f2937;
+  background: #e5e7eb;
+}
+
+.status-badge--submitted {
+  color: #1d4ed8;
+  background: #e0e7ff;
+}
+
+.status-badge--l1 {
+  color: #047857;
+  background: #d1fae5;
+}
+
+.status-badge--l2 {
+  color: #111827;
+  background: linear-gradient(135deg, #fde68a, #fbbf24);
+}
+
+.table-card {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 1.25rem 1.5rem;
+  box-shadow: 0 16px 40px rgba(15, 23, 42, 0.08);
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.table-card__header h2 {
+  margin: 0;
+  font-size: 1.25rem;
+}
+
+.table-card__header p {
+  margin: 0.25rem 0 0;
+  color: #6b7280;
+}
+
+.table-scroll {
+  overflow-x: auto;
+}
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 960px;
+}
+
+.data-table th,
+.data-table td {
+  padding: 0.65rem 0.75rem;
+  border-bottom: 1px solid #e5e7eb;
+  text-align: left;
+  font-size: 0.95rem;
+  white-space: nowrap;
+}
+
+.data-table tbody tr:hover {
+  background: #f9fafb;
+}
+
+.data-table th {
+  background: #f3f4f6;
+  font-weight: 700;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+.table-card__empty {
+  margin: 0;
+  color: #6b7280;
+}
+
+.page-hint {
+  background: #f9fafb;
+  border-radius: 12px;
+  padding: 1rem 1.25rem;
+}
+
+.page-hint h2 {
+  margin: 0 0 0.5rem;
+  font-size: 1.1rem;
+}
+
+.page-hint ul {
+  margin: 0;
+  padding-left: 1.25rem;
+  color: #4b5563;
+}
+
+.modal {
+  position: fixed;
+  inset: 0;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal.is-active {
+  display: flex;
+}
+
+.modal__overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.4);
+}
+
+.modal__dialog {
+  position: relative;
+  background: #ffffff;
+  border-radius: 16px;
+  width: min(760px, 95vw);
+  max-height: min(90vh, 960px);
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 24px 60px rgba(15, 23, 42, 0.25);
+}
+
+.modal__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.modal__header h2 {
+  margin: 0;
+}
+
+.modal__close {
+  background: transparent;
+  border: none;
+  width: 1.75rem;
+  height: 1.75rem;
+  cursor: pointer;
+  position: relative;
+}
+
+.modal__close::before,
+.modal__close::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 1.2rem;
+  height: 2px;
+  background: #6b7280;
+  transform-origin: center;
+}
+
+.modal__close::before {
+  transform: translate(-50%, -50%) rotate(45deg);
+}
+
+.modal__close::after {
+  transform: translate(-50%, -50%) rotate(-45deg);
+}
+
+.modal__body {
+  padding: 1.25rem 1.5rem 1.5rem;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 1rem 1.25rem;
+}
+
+.form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.form-field--span {
+  grid-column: 1 / -1;
+}
+
+.form-label {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #4b5563;
+}
+
+.form-field input,
+.form-field select,
+.form-field textarea {
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  padding: 0.55rem 0.65rem;
+  font-size: 0.95rem;
+  font-family: inherit;
+}
+
+.form-field input:focus,
+.form-field select:focus,
+.form-field textarea:focus {
+  outline: none;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
+}
+
+.drop-zone {
+  border: 2px dashed #93c5fd;
+  border-radius: 12px;
+  padding: 1rem;
+  text-align: center;
+  color: #1d4ed8;
+  background: #eff6ff;
+}
+
+.drop-zone.is-dragover {
+  background: #dbeafe;
+  border-color: #1d4ed8;
+}
+
+.drop-zone button {
+  background: none;
+  border: none;
+  color: #1d4ed8;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.attachment-list {
+  margin: 0.5rem 0 0;
+  padding: 0;
+  list-style: none;
+  color: #1f2937;
+  text-align: left;
+}
+
+.attachment-list li {
+  padding: 0.25rem 0;
+}
+
+.form-error {
+  margin: 0;
+  color: #dc2626;
+  min-height: 1rem;
+}
+
+.modal__footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  padding-top: 0.5rem;
+}
+
+.primary-button,
+.secondary-button {
+  padding: 0.5rem 1.25rem;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 0.95rem;
+}
+
+.primary-button {
+  border: none;
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  color: #ffffff;
+}
+
+.secondary-button {
+  border: 1px solid #d1d5db;
+  background: #ffffff;
+  color: #1f2937;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  border: 0;
+}
+
+@media (max-width: 720px) {
+  .data-table {
+    min-width: 720px;
+  }
+
+  .info-field--actions {
+    justify-self: flex-start;
+  }
+
+  .button-group {
+    justify-content: flex-start;
+  }
+}
+</style>
