@@ -433,6 +433,12 @@ import('./page-inits/stationary-combustion')
         m.initStationaryCombustion)
   )
   .catch(() => {});
+import('./page-inits/business-travel')
+  .then(
+    (m) =>
+      (pageInitializers['pages/business-travel.html'] = m.initBusinessTravel)
+  )
+  .catch(() => {});
 
 const activeHref = ref('');
 const activeContent = ref('');
