@@ -195,6 +195,13 @@ const pageModules = import.meta.glob('../pages/*.html', {
   import: 'default',
 }) as Record<string, string>;
 
+// Programmatic page initializers for pages that previously relied on inline scripts
+const pageInitializers: Record<string, () => void> = {};
+
+// Lazy-load initializer modules and register them keyed by href used in the menu
+import('./page-inits/organization-structure').then((m) => (pageInitializers['pages/organization-structure.html'] = m.initOrganizationStructure)).catch(() => {});
+import('./page-inits/site-settings').then((m) => (pageInitializers['pages/site-settings.html'] = m.initSiteSettings)).catch(() => {});
+
 const activeHref = ref('');
 const activeContent = ref('');
 
@@ -265,6 +272,18 @@ function setActiveContent(href: string) {
   activeHref.value = href;
   activeContent.value =
     html || '<section class="page-content"><p>無法載入選取的內容。</p></section>';
+
+  // Call page initializer if present. Use a microtask to ensure DOM has updated.
+  Promise.resolve().then(() => {
+    const init = pageInitializers[href];
+    if (typeof init === 'function') {
+      try {
+        init();
+      } catch (e) {
+        console.error('Page initializer error for', href, e);
+      }
+    }
+  });
 }
 
 function getModuleKey(href: string) {

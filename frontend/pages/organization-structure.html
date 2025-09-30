@@ -112,7 +112,32 @@
       attachResizeObserver(container);
     }
 
-    initializeTable();
+    function waitForHandsontableAndInit(timeout = 2000) {
+      const start = Date.now();
+
+      function tryInit() {
+        if (window.Handsontable) {
+          initializeTable();
+          return;
+        }
+
+        if (Date.now() - start > timeout) {
+          console.error('Handsontable did not become available in time.');
+          return;
+        }
+
+        // Poll every 50ms until timeout
+        setTimeout(tryInit, 50);
+      }
+
+      tryInit();
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', () => waitForHandsontableAndInit(), { once: true });
+    } else {
+      waitForHandsontableAndInit();
+    }
   })();
 </script>
 
