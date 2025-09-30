@@ -2,38 +2,38 @@
   <div class="app-root">
     <div v-if="!isLoggedIn" class="login-container">
       <form class="login-box" @submit.prevent="handleLogin">
-        <h1 class="login-title">Login</h1>
-        <label class="form-label" for="username">User ID</label>
+        <h1 class="login-title">{{ texts.login.title }}</h1>
+        <label class="form-label" for="username">{{ texts.login.usernameLabel }}</label>
         <input
           id="username"
           v-model="form.username"
           class="form-input"
           type="text"
           autocomplete="username"
-          placeholder="Enter your user ID"
+          :placeholder="texts.login.usernamePlaceholder"
           required
         />
-        <label class="form-label" for="password">Password</label>
+        <label class="form-label" for="password">{{ texts.login.passwordLabel }}</label>
         <input
           id="password"
           v-model="form.password"
           class="form-input"
           type="password"
           autocomplete="current-password"
-          placeholder="Enter your password"
+          :placeholder="texts.login.passwordPlaceholder"
           required
         />
-        <label class="form-label" for="verificationCode">Verification Code</label>
+        <label class="form-label" for="verificationCode">{{ texts.login.verificationCodeLabel }}</label>
         <input
           id="verificationCode"
           v-model="form.verificationCode"
           class="form-input"
           type="text"
-          placeholder="Enter your verification code"
+          :placeholder="texts.login.verificationCodePlaceholder"
           required
         />
         <p v-if="errorMessage" class="error-text">{{ errorMessage }}</p>
-        <button class="primary-button" type="submit">Login</button>
+        <button class="primary-button" type="submit">{{ texts.login.submit }}</button>
       </form>
     </div>
 
@@ -47,14 +47,32 @@
             aria-controls="mainNavigation"
             @click="toggleNavigation"
           >
-            {{ isNavCollapsed ? '顯示選單' : '隱藏選單' }}
+            {{ isNavCollapsed ? texts.dashboard.showMenu : texts.dashboard.hideMenu }}
           </button>
           <div class="logo" aria-hidden="true">🐱</div>
         </div>
-        <div class="user-info">
-          <span class="user-label">Logged in as:</span>
-          <span class="user-name">{{ storedUser }}</span>
-          <button class="secondary-button" type="button" @click="handleLogout">Logout</button>
+        <div class="top-bar-right">
+          <div class="language-switcher">
+            <label class="sr-only" for="language-select">{{ texts.languageSwitcher.label }}</label>
+            <span aria-hidden="true" class="language-prefix">🌐</span>
+            <select
+              id="language-select"
+              v-model="currentLanguage"
+              class="language-select"
+              :aria-label="texts.languageSwitcher.ariaLabel"
+            >
+              <option v-for="language in languageOptions" :key="language.code" :value="language.code">
+                {{ language.label }}
+              </option>
+            </select>
+          </div>
+          <div class="user-info">
+            <span class="user-label">{{ texts.dashboard.loggedInAs }}</span>
+            <span class="user-name">{{ storedUser }}</span>
+            <button class="secondary-button" type="button" @click="handleLogout">
+              {{ texts.dashboard.logout }}
+            </button>
+          </div>
         </div>
       </header>
       <main class="main-layout">
@@ -100,7 +118,7 @@
             v-html="activeContent"
           />
           <p v-else class="dashboard-placeholder">
-            請從左側選擇一個項目以載入對應內容。
+            {{ texts.dashboard.emptyState }}
           </p>
         </section>
       </main>
@@ -116,64 +134,248 @@ const STORAGE_KEYS = {
   verificationCode: 'verificationCode',
 };
 
-const menuSections = [
+const LANGUAGE_STORAGE_KEY = 'preferredLanguage';
+
+const languageOptions = [
+  { code: 'zh-TW', label: '繁中', htmlLang: 'zh-Hant' },
+  { code: 'zh-CN', label: '简中', htmlLang: 'zh-Hans' },
+  { code: 'en', label: 'English', htmlLang: 'en' },
+] as const;
+
+const MENU_STRUCTURE = [
   {
-    title: '系統參數定義',
+    id: 'systemParameters',
     links: [
-      { label: '組織架構設定', href: 'pages/organization-structure.html' },
-      { label: '據點設定', href: 'pages/site-settings.html' },
-      { label: '排放源類型設定', href: 'pages/emission-source-types.html' },
+      { id: 'organizationStructure', href: 'pages/organization-structure.html' },
+      { id: 'siteSettings', href: 'pages/site-settings.html' },
+      { id: 'emissionSourceTypes', href: 'pages/emission-source-types.html' },
       {
-        label: '排放源與據點關聯管理',
+        id: 'emissionSourceSiteAssociation',
         href: 'pages/emission-source-site-association.html',
       },
-      { label: '排放源實例管理', href: 'pages/emission-source-instances.html' },
-      { label: '計算因子管理', href: 'pages/calculation-factors.html' },
-      { label: '審核流程定義', href: 'pages/review-process.html' },
+      { id: 'emissionSourceInstances', href: 'pages/emission-source-instances.html' },
+      { id: 'calculationFactors', href: 'pages/calculation-factors.html' },
+      { id: 'reviewProcess', href: 'pages/review-process.html' },
     ],
   },
   {
-    title: '資料蒐集',
+    id: 'dataCollection',
     links: [
-      { label: '固定燃燒排放源 (發電機)', href: 'pages/stationary-combustion.html' },
-      { label: '移動排放源 (公務汽車、貨車)', href: 'pages/mobile-sources.html' },
+      { id: 'stationaryCombustion', href: 'pages/stationary-combustion.html' },
+      { id: 'mobileSources', href: 'pages/mobile-sources.html' },
+      { id: 'fugitiveEmissions', href: 'pages/fugitive-emissions.html' },
+      { id: 'septicTank', href: 'pages/septic-tank.html' },
+      { id: 'indirectElectricity', href: 'pages/indirect-electricity.html' },
+      { id: 'upstreamLogisticsConsumables', href: 'pages/upstream-logistics-consumables.html' },
+      { id: 'upstreamOfficeConsumables', href: 'pages/upstream-office-consumables.html' },
+      { id: 'businessTravel', href: 'pages/business-travel.html' },
       {
-        label: '逸散性排放(飲水機、滅火器、補滅火器)',
-        href: 'pages/fugitive-emissions.html',
-      },
-      { label: '化糞池', href: 'pages/septic-tank.html' },
-      {
-        label: '輸入電力的間接排放 (辦公室用電)',
-        href: 'pages/indirect-electricity.html',
-      },
-      {
-        label: '上游運輸物流經常耗材',
-        href: 'pages/upstream-logistics-consumables.html',
-      },
-      {
-        label: '上游運輸辦公耗材',
-        href: 'pages/upstream-office-consumables.html',
-      },
-      { label: '商務差旅', href: 'pages/business-travel.html' },
-      {
-        label: '採購商品或服務－倉儲堆高機',
+        id: 'purchasedGoodsServicesForklift',
         href: 'pages/purchased-goods-services-forklift.html',
       },
-      {
-        label: '燃料與能源相關活動外購能源',
-        href: 'pages/fuel-energy-related.html',
-      },
-      { label: '物流貨物運輸', href: 'pages/logistics-goods-transport.html' },
-      { label: '物流運輸排放 (陸運)', href: 'pages/logistics-transport-land.html' },
-      { label: '物流運輸排放 (海運)', href: 'pages/logistics-transport-sea.html' },
-      { label: '物流運輸排放 (空運)', href: 'pages/logistics-transport-air.html' },
+      { id: 'fuelEnergyRelated', href: 'pages/fuel-energy-related.html' },
+      { id: 'logisticsGoodsTransport', href: 'pages/logistics-goods-transport.html' },
+      { id: 'logisticsTransportLand', href: 'pages/logistics-transport-land.html' },
+      { id: 'logisticsTransportSea', href: 'pages/logistics-transport-sea.html' },
+      { id: 'logisticsTransportAir', href: 'pages/logistics-transport-air.html' },
     ],
   },
   {
-    title: '清冊簡表',
-    links: [{ label: '清冊簡表', href: 'pages/inventory-summary.html' }],
+    id: 'inventorySummary',
+    links: [{ id: 'inventorySummaryLink', href: 'pages/inventory-summary.html' }],
   },
-];
+] as const;
+
+const translations = {
+  'zh-TW': {
+    languageSwitcher: {
+      label: '選擇語言',
+      ariaLabel: '選擇介面語言',
+    },
+    login: {
+      title: '登入',
+      usernameLabel: '使用者帳號',
+      usernamePlaceholder: '請輸入使用者帳號',
+      passwordLabel: '密碼',
+      passwordPlaceholder: '請輸入密碼',
+      verificationCodeLabel: '驗證碼',
+      verificationCodePlaceholder: '請輸入驗證碼',
+      submit: '登入',
+      validationRequired: '請填寫所有必填欄位。',
+    },
+    dashboard: {
+      showMenu: '顯示選單',
+      hideMenu: '隱藏選單',
+      loggedInAs: '登入身分：',
+      logout: '登出',
+      emptyState: '請從左側選擇一個項目以載入對應內容。',
+      loadErrorHtml: '<section class="page-content"><p>無法載入選取的內容。</p></section>',
+    },
+    menu: {
+      sections: {
+        systemParameters: '系統參數定義',
+        dataCollection: '資料蒐集',
+        inventorySummary: '清冊簡表',
+      },
+      links: {
+        organizationStructure: '組織架構設定',
+        siteSettings: '據點設定',
+        emissionSourceTypes: '排放源類型設定',
+        emissionSourceSiteAssociation: '排放源與據點關聯管理',
+        emissionSourceInstances: '排放源實例管理',
+        calculationFactors: '計算因子管理',
+        reviewProcess: '審核流程定義',
+        stationaryCombustion: '固定燃燒排放源 (發電機)',
+        mobileSources: '移動排放源 (公務汽車、貨車)',
+        fugitiveEmissions: '逸散性排放(飲水機、滅火器、補滅火器)',
+        septicTank: '化糞池',
+        indirectElectricity: '輸入電力的間接排放 (辦公室用電)',
+        upstreamLogisticsConsumables: '上游運輸物流經常耗材',
+        upstreamOfficeConsumables: '上游運輸辦公耗材',
+        businessTravel: '商務差旅',
+        purchasedGoodsServicesForklift: '採購商品或服務－倉儲堆高機',
+        fuelEnergyRelated: '燃料與能源相關活動外購能源',
+        logisticsGoodsTransport: '物流貨物運輸',
+        logisticsTransportLand: '物流運輸排放 (陸運)',
+        logisticsTransportSea: '物流運輸排放 (海運)',
+        logisticsTransportAir: '物流運輸排放 (空運)',
+        inventorySummaryLink: '清冊簡表',
+      },
+    },
+  },
+  'zh-CN': {
+    languageSwitcher: {
+      label: '选择语言',
+      ariaLabel: '选择界面语言',
+    },
+    login: {
+      title: '登录',
+      usernameLabel: '用户账号',
+      usernamePlaceholder: '请输入用户账号',
+      passwordLabel: '密码',
+      passwordPlaceholder: '请输入密码',
+      verificationCodeLabel: '验证码',
+      verificationCodePlaceholder: '请输入验证码',
+      submit: '登录',
+      validationRequired: '请填写所有必填栏位。',
+    },
+    dashboard: {
+      showMenu: '显示选单',
+      hideMenu: '隐藏选单',
+      loggedInAs: '登录身份：',
+      logout: '退出登录',
+      emptyState: '请从左侧选择一个项目以载入对应内容。',
+      loadErrorHtml: '<section class="page-content"><p>无法载入选取的内容。</p></section>',
+    },
+    menu: {
+      sections: {
+        systemParameters: '系统参数定义',
+        dataCollection: '资料搜集',
+        inventorySummary: '清册简表',
+      },
+      links: {
+        organizationStructure: '组织架构设定',
+        siteSettings: '据点设定',
+        emissionSourceTypes: '排放源类型设定',
+        emissionSourceSiteAssociation: '排放源与据点关联管理',
+        emissionSourceInstances: '排放源实例管理',
+        calculationFactors: '计算因子管理',
+        reviewProcess: '审核流程定义',
+        stationaryCombustion: '固定燃烧排放源 (发电机)',
+        mobileSources: '移动排放源 (公务汽车、货车)',
+        fugitiveEmissions: '逸散性排放(饮水机、灭火器、补灭火器)',
+        septicTank: '化粪池',
+        indirectElectricity: '输入电力的间接排放 (办公室用电)',
+        upstreamLogisticsConsumables: '上游运输物流经常耗材',
+        upstreamOfficeConsumables: '上游运输办公耗材',
+        businessTravel: '商务差旅',
+        purchasedGoodsServicesForklift: '采购商品或服务－仓储堆高机',
+        fuelEnergyRelated: '燃料与能源相关活动外购能源',
+        logisticsGoodsTransport: '物流货物运输',
+        logisticsTransportLand: '物流运输排放 (陆运)',
+        logisticsTransportSea: '物流运输排放 (海运)',
+        logisticsTransportAir: '物流运输排放 (空运)',
+        inventorySummaryLink: '清册简表',
+      },
+    },
+  },
+  en: {
+    languageSwitcher: {
+      label: 'Select language',
+      ariaLabel: 'Choose interface language',
+    },
+    login: {
+      title: 'Login',
+      usernameLabel: 'User ID',
+      usernamePlaceholder: 'Enter your user ID',
+      passwordLabel: 'Password',
+      passwordPlaceholder: 'Enter your password',
+      verificationCodeLabel: 'Verification Code',
+      verificationCodePlaceholder: 'Enter your verification code',
+      submit: 'Login',
+      validationRequired: 'Please fill out all required fields.',
+    },
+    dashboard: {
+      showMenu: 'Show menu',
+      hideMenu: 'Hide menu',
+      loggedInAs: 'Logged in as:',
+      logout: 'Logout',
+      emptyState: 'Select an item on the left to load its content.',
+      loadErrorHtml:
+        '<section class="page-content"><p>Unable to load the selected content.</p></section>',
+    },
+    menu: {
+      sections: {
+        systemParameters: 'System Parameter Settings',
+        dataCollection: 'Data Collection',
+        inventorySummary: 'Inventory Summary',
+      },
+      links: {
+        organizationStructure: 'Organization Structure Settings',
+        siteSettings: 'Site Settings',
+        emissionSourceTypes: 'Emission Source Type Settings',
+        emissionSourceSiteAssociation: 'Emission Source & Site Association',
+        emissionSourceInstances: 'Emission Source Instance Management',
+        calculationFactors: 'Calculation Factor Management',
+        reviewProcess: 'Review Process Definition',
+        stationaryCombustion: 'Stationary Combustion Sources (Generators)',
+        mobileSources: 'Mobile Sources (Company Cars & Trucks)',
+        fugitiveEmissions: 'Fugitive Emissions (Dispensers & Extinguishers)',
+        septicTank: 'Septic Tank',
+        indirectElectricity: 'Indirect Electricity Emissions (Office Power)',
+        upstreamLogisticsConsumables: 'Upstream Logistics Consumables',
+        upstreamOfficeConsumables: 'Upstream Office Consumables',
+        businessTravel: 'Business Travel',
+        purchasedGoodsServicesForklift: 'Purchased Goods/Services – Warehouse Forklifts',
+        fuelEnergyRelated: 'Fuel & Energy Activities - Purchased Energy',
+        logisticsGoodsTransport: 'Logistics Goods Transport',
+        logisticsTransportLand: 'Logistics Emissions (Land Transport)',
+        logisticsTransportSea: 'Logistics Emissions (Sea Transport)',
+        logisticsTransportAir: 'Logistics Emissions (Air Transport)',
+        inventorySummaryLink: 'Inventory Summary',
+      },
+    },
+  },
+} as const;
+
+const storedLanguage = localStorage.getItem(LANGUAGE_STORAGE_KEY);
+const defaultLanguage =
+  languageOptions.find((option) => option.code === storedLanguage)?.code || 'zh-TW';
+
+const currentLanguage = ref(defaultLanguage);
+
+const texts = computed(() => translations[currentLanguage.value] || translations['zh-TW']);
+
+const menuSections = computed(() => {
+  const activeTexts = texts.value;
+  return MENU_STRUCTURE.map((section) => ({
+    title: activeTexts.menu.sections[section.id],
+    links: section.links.map((link) => ({
+      href: link.href,
+      label: activeTexts.menu.links[link.id],
+    })),
+  }));
+});
 
 const isLoggedIn = ref(false);
 const isNavCollapsed = ref(false);
@@ -255,9 +457,25 @@ watch(isLoggedIn, (loggedIn) => {
   }
 });
 
+watch(
+  currentLanguage,
+  (lang) => {
+    localStorage.setItem(LANGUAGE_STORAGE_KEY, lang);
+    const htmlLang =
+      languageOptions.find((option) => option.code === lang)?.htmlLang || 'zh-Hant';
+    if (typeof document !== 'undefined') {
+      document.documentElement.setAttribute('lang', htmlLang);
+    }
+    if (errorMessage.value) {
+      errorMessage.value = texts.value.login.validationRequired;
+    }
+  },
+  { immediate: true }
+);
+
 function handleLogin() {
   if (!form.username || !form.password || !form.verificationCode) {
-    errorMessage.value = 'Please fill out all required fields.';
+    errorMessage.value = texts.value.login.validationRequired;
     return;
   }
 
@@ -287,7 +505,7 @@ function toggleNavigation() {
 }
 
 function loadDefaultContent() {
-  const firstSection = menuSections.find((section) => section.links?.length);
+  const firstSection = menuSections.value.find((section) => section.links?.length);
   const firstHref = firstSection?.links?.[0]?.href;
 
   if (firstHref) {
@@ -301,7 +519,7 @@ function setActiveContent(href: string) {
 
   activeHref.value = href;
   activeContent.value =
-    html || '<section class="page-content"><p>無法載入選取的內容。</p></section>';
+    html || texts.value.dashboard.loadErrorHtml;
 
   // Call page initializer if present. Use a microtask to ensure DOM has updated.
   Promise.resolve().then(() => {
@@ -456,6 +674,50 @@ if (isLoggedIn.value) {
 
 .logo {
   font-size: 1.75rem;
+}
+
+.top-bar-right {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+}
+
+.language-switcher {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.35rem 0.65rem;
+  border-radius: 9999px;
+  background: rgba(15, 23, 42, 0.55);
+  border: 1px solid rgba(249, 250, 251, 0.2);
+}
+
+.language-prefix {
+  font-size: 0.95rem;
+}
+
+.language-select {
+  background: transparent;
+  border: none;
+  color: inherit;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.language-select:focus {
+  outline: none;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 
 .user-info {
