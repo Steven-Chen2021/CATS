@@ -210,6 +210,13 @@ import('./page-inits/emission-source-types')
         m.initEmissionSourceTypes)
   )
   .catch(() => {});
+import('./page-inits/emission-source-site-association')
+  .then(
+    (m) =>
+      (pageInitializers['pages/emission-source-site-association.html'] =
+        m.initEmissionSourceSiteAssociation)
+  )
+  .catch(() => {});
 
 const activeHref = ref('');
 const activeContent = ref('');
