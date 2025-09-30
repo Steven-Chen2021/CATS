@@ -16,27 +16,30 @@
 
   <article class="table-card" aria-label="據點維護表格">
     <div id="siteLocationsTable" class="hot-container" role="application"></div>
+    <footer class="table-actions">
+      <button type="button" class="primary-button">儲存</button>
+    </footer>
   </article>
 </section>
 
 <script>
   (function () {
     const siteOptions = [
-      { id: 'taipei-hq', name: '台北總部' },
-      { id: 'kaohsiung-ops', name: '高雄營運中心' },
-      { id: 'tokyo-office', name: '東京辦公室' }
+      { id: 'DIMSHA', name: 'DIMSHA' },
+      { id: 'DIMLAX', name: 'DIMLAX' },
+      { id: 'DIMTPE', name: 'DIMTPE' }
     ];
 
     const siteLocationData = {
-      'taipei-hq': [
-        { locationName: '松山辦公室', status: '啟用', statusDate: '2024-03-01' },
-        { locationName: '內湖倉儲', status: '停用', statusDate: '2023-11-20' }
+      DIMSHA: [
+        { locationName: '上海營運據點', status: '啟用', statusDate: '2024-03-01' },
+        { locationName: '浦東倉儲中心', status: '停用', statusDate: '2023-11-20' }
       ],
-      'kaohsiung-ops': [
-        { locationName: '小港營運據點', status: '啟用', statusDate: '2024-01-12' }
+      DIMLAX: [
+        { locationName: '洛杉磯轉運中心', status: '啟用', statusDate: '2024-01-12' }
       ],
-      'tokyo-office': [
-        { locationName: '新宿合作據點', status: '啟用', statusDate: '2024-02-27' }
+      DIMTPE: [
+        { locationName: '台北營運據點', status: '啟用', statusDate: '2024-02-27' }
       ]
     };
 
@@ -227,11 +230,35 @@
     border: 1px solid #e5e7eb;
     padding: 1rem;
     box-shadow: 0 10px 30px rgba(15, 23, 42, 0.05);
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
   }
 
   .site-settings .hot-container {
     width: 100%;
     min-height: 320px;
     overflow: hidden;
+  }
+
+  .site-settings .table-actions {
+    display: flex;
+    justify-content: flex-end;
+  }
+
+  .site-settings .primary-button {
+    padding: 0.5rem 1rem;
+    font-size: 0.95rem;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    background: #2563eb;
+    color: #ffffff;
+    transition: background-color 0.2s ease;
+  }
+
+  .site-settings .primary-button:hover,
+  .site-settings .primary-button:focus {
+    background: #1d4ed8;
   }
 </style>
