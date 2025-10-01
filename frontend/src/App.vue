@@ -127,7 +127,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, reactive, ref, watch } from 'vue';
+import { computed, onMounted, onUnmounted, reactive, ref, watch } from 'vue';
 
 const STORAGE_KEYS = {
   username: 'username',
@@ -366,6 +366,14 @@ const currentLanguage = ref(defaultLanguage);
 
 const texts = computed(() => translations[currentLanguage.value] || translations['zh-TW']);
 
+type NavigationDetail = {
+  href: string;
+  site?: string;
+  sourceType?: string;
+};
+
+const EMISSION_CONTEXT_STORAGE_KEY = 'catsSelectedEmissionContext';
+
 const menuSections = computed(() => {
   const activeTexts = texts.value;
   return MENU_STRUCTURE.map((section) => ({
@@ -450,6 +458,45 @@ import('./page-inits/business-travel')
 const activeHref = ref('');
 const activeContent = ref('');
 
+function storeEmissionContext(detail: NavigationDetail | undefined) {
+  if (!detail) {
+    return;
+  }
+
+  const { site, sourceType } = detail;
+
+  if (typeof sessionStorage === 'undefined') {
+    return;
+  }
+
+  if (!site && !sourceType) {
+    sessionStorage.removeItem(EMISSION_CONTEXT_STORAGE_KEY);
+    return;
+  }
+
+  try {
+    sessionStorage.setItem(
+      EMISSION_CONTEXT_STORAGE_KEY,
+      JSON.stringify({ site: site || '', sourceType: sourceType || '' })
+    );
+  } catch (error) {
+    console.warn('Failed to persist emission source context', error);
+  }
+}
+
+function handleExternalNavigation(event: Event) {
+  const customEvent = event as CustomEvent<NavigationDetail>;
+  const detail = customEvent.detail;
+
+  if (!detail?.href) {
+    return;
+  }
+
+  storeEmissionContext(detail);
+  isNavCollapsed.value = false;
+  setActiveContent(detail.href);
+}
+
 onMounted(() => {
   const username = localStorage.getItem(STORAGE_KEYS.username);
   const verificationCode = localStorage.getItem(STORAGE_KEYS.verificationCode);
@@ -459,6 +506,12 @@ onMounted(() => {
     form.verificationCode = verificationCode;
     isLoggedIn.value = true;
   }
+
+  window.addEventListener('cats:navigate', handleExternalNavigation as EventListener);
+});
+
+onUnmounted(() => {
+  window.removeEventListener('cats:navigate', handleExternalNavigation as EventListener);
 });
 
 watch(isLoggedIn, (loggedIn) => {
@@ -510,6 +563,7 @@ function handleSelectLink(href: string) {
   if (activeHref.value === href) {
     return;
   }
+  storeEmissionContext({ href });
   setActiveContent(href);
 }
 
