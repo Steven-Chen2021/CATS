@@ -1,0 +1,11 @@
+year,country,region,site,emission_sources,status
+2024,台灣,北亞營運區,DIMTPE,"固定燃燒排放|輸入電力的間接排放",Submitted
+2023,中國,華東營運區,DIMSHA,"固定燃燒排放|逸散性排放|物流運輸排放 (陸運)",L1Approved
+2024,美國,北美營運區,DIMLAX,"物流貨物運輸|上游運輸物流經常耗材",Draft
+2024,越南,東協營運區,DIMSGN,"固定燃燒排放|商務差旅",L2Approved
+2022,日本,北亞營運區,DIMNRT,"製程逸散排放|購買冷媒|業務差旅",Draft
+2022,德國,歐洲營運區,DIMFRA,"固定燃燒排放|輸入蒸氣的間接排放",Submitted
+2023,印度,南亞營運區,DIMBLR,"逸散性排放|產品使用排放|員工通勤",L1Approved
+2023,墨西哥,拉美營運區,DIMMEX,"物流運輸排放 (海運)|租賃資產能源使用",L2Approved
+2024,澳大利亞,大洋洲營運區,DIMSYD,"固定燃燒排放|自有車隊燃料使用",Draft
+2024,新加坡,東協營運區,DIMSIN,"物流貨物運輸|外購蒸氣",Submitted
