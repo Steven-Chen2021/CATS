@@ -1,3 +1,5 @@
+import { loadCsvRows, type CsvRow } from '../utils/csv-loader';
+
 type AuditStatus = 'Draft' | 'Submitted' | 'L1Approved' | 'L2Approved';
 
 type TransportMode = 'plane' | 'hsr' | 'train' | 'car' | 'metro';
@@ -58,6 +60,7 @@ const CABIN_OPTIONS: Option[] = [
 ];
 
 const FACTOR_SOURCE_DEFAULT = '交通部運輸排放係數資料庫 2024 年版';
+const TRAVEL_DATA_PATH = `${import.meta.env.BASE_URL}data/business-travel.csv`;
 
 const FACTOR_DETAILS: Record<string, FactorDetail> = {
   'plane|economy': {
@@ -124,40 +127,9 @@ const factorFormatter = new Intl.NumberFormat('zh-TW', {
   maximumFractionDigits: 3,
 });
 
-let records: TravelRecord[] = [
-  {
-    id: 'rec-1',
-    company: COMPANY_NAME,
-    site: SITE_OPTIONS[0],
-    departureDate: '2024-03-12',
-    transportation: 'plane',
-    cabinClass: 'economy',
-    origin: '台北',
-    destination: '東京',
-    dailyTrips: 2,
-    passengers: 2,
-    distanceKm: 2140,
-    dataSource: '差旅平台匯出',
-    attachments: ['20240312_flight.pdf'],
-    notes: '去回程皆為經濟艙',
-  },
-  {
-    id: 'rec-2',
-    company: COMPANY_NAME,
-    site: SITE_OPTIONS[1],
-    departureDate: '2024-04-08',
-    transportation: 'hsr',
-    origin: '新竹',
-    destination: '高雄',
-    dailyTrips: 2,
-    passengers: 1,
-    distanceKm: 345,
-    dataSource: '出差報銷單',
-    attachments: ['hsr-ticket.png'],
-  },
-];
+let records: TravelRecord[] = [];
 
-let recordCounter = records.length;
+let recordCounter = 0;
 let currentStatus: AuditStatus = 'Draft';
 let pendingReturn = false;
 
@@ -218,6 +190,7 @@ export function initBusinessTravel() {
   populateSelect(transportSelect, TRANSPORT_OPTIONS, '請選擇交通方式');
   populateSelect(cabinSelect, CABIN_OPTIONS, '請選擇艙等');
 
+  void loadInitialRecords();
   renderRecords();
   renderStatus();
   syncCabinAvailability(transportSelect, cabinSelect);
@@ -358,6 +331,109 @@ export function initBusinessTravel() {
       }
     }
   });
+
+  async function loadInitialRecords() {
+    try {
+      const rows = await loadCsvRows(TRAVEL_DATA_PATH);
+      records = rows
+        .map(mapRowToRecord)
+        .filter((record): record is TravelRecord => record !== null);
+      recordCounter = Math.max(recordCounter, getMaxRecordIndex(records));
+      renderRecords();
+    } catch (error) {
+      console.error('Failed to load business travel records from CSV.', error);
+      renderStatus('初始化資料載入失敗，請稍後再試。');
+    }
+  }
+
+  function mapRowToRecord(row: CsvRow): TravelRecord | null {
+    const id = row.id?.trim();
+    const company = row.company?.trim() || COMPANY_NAME;
+    const site = row.site?.trim();
+    const departureDate = row.departureDate?.trim() ?? '';
+    const transport = row.transportation?.trim() as TransportMode;
+    const origin = row.origin?.trim();
+    const destination = row.destination?.trim();
+    const dataSource = row.dataSource?.trim() ?? '';
+    const notes = row.notes?.trim();
+    const dailyTrips = parseNumber(row.dailyTrips);
+    const passengers = parseNumber(row.passengers);
+    const distanceKm = parseNumber(row.distanceKm);
+
+    if (!id || !site || !origin || !destination) {
+      return null;
+    }
+
+    if (!isValidTransport(transport)) {
+      return null;
+    }
+
+    if (!Number.isFinite(dailyTrips) || dailyTrips < 0) {
+      return null;
+    }
+
+    if (!Number.isFinite(passengers) || passengers <= 0) {
+      return null;
+    }
+
+    if (!Number.isFinite(distanceKm) || distanceKm < 0) {
+      return null;
+    }
+
+    let cabinClass: string | undefined;
+    const cabinValue = row.cabinClass?.trim();
+    if (transport === 'plane') {
+      cabinClass = CABIN_OPTIONS.some((option) => option.value === cabinValue) ? cabinValue : undefined;
+    }
+
+    return {
+      id,
+      company,
+      site,
+      departureDate,
+      transportation: transport,
+      cabinClass,
+      origin,
+      destination,
+      dailyTrips,
+      passengers,
+      distanceKm,
+      dataSource,
+      attachments: parseAttachmentList(row.attachments),
+      notes: notes ? notes : undefined,
+    };
+  }
+
+  function parseAttachmentList(value?: string): string[] {
+    if (!value) {
+      return [];
+    }
+
+    return value
+      .split(';')
+      .map((item) => item.trim())
+      .filter((item) => item.length > 0);
+  }
+
+  function parseNumber(value?: string): number {
+    const result = Number(value ?? '');
+    return Number.isFinite(result) ? result : NaN;
+  }
+
+  function isValidTransport(value: string | TransportMode | undefined): value is TransportMode {
+    return TRANSPORT_OPTIONS.some((option) => option.value === value);
+  }
+
+  function getMaxRecordIndex(list: TravelRecord[]): number {
+    return list.reduce((max, record) => {
+      const match = /^rec-(\d+)$/.exec(record.id);
+      if (!match) {
+        return max;
+      }
+      const numericId = Number.parseInt(match[1], 10);
+      return Number.isFinite(numericId) && numericId > max ? numericId : max;
+    }, 0);
+  }
 
   function renderRecords() {
     tableBody.innerHTML = '';

@@ -1,3 +1,5 @@
+import { loadCsvRows, type CsvRow } from '../utils/csv-loader';
+
 type AuditStatus = 'Draft' | 'Submitted' | 'L1Approved' | 'L2Approved';
 
 type ConsumableRecord = {
@@ -46,6 +48,7 @@ const EMISSION_FACTORS: Record<string, number> = {
 };
 
 const FACTOR_SOURCE = '交通運輸排放係數資料庫 2024 年版';
+const CONSUMABLES_DATA_PATH = `${import.meta.env.BASE_URL}data/upstream-logistics-consumables.csv`;
 
 const numberFormatter = new Intl.NumberFormat('zh-TW', {
   minimumFractionDigits: 0,
@@ -114,39 +117,7 @@ export function initUpstreamLogisticsConsumables() {
 
   yearDisplay.textContent = `${INVENTORY_YEAR} 年`;
 
-  const records: ConsumableRecord[] = [
-    {
-      location: DEPOT_OPTIONS[0],
-      month: 3,
-      item: '瓦楞紙箱 (大)',
-      vehicle: '3.5T 小貨車',
-      fuelType: '柴油',
-      origin: '台北市',
-      destination: '台中市',
-      quantity: 320,
-      unitWeightKg: 0.85,
-      distanceKm: 170,
-      dataSource: '物流系統出貨紀錄',
-      factorSource: FACTOR_SOURCE,
-      attachments: ['出貨單據_20240315.pdf'],
-    },
-    {
-      location: DEPOT_OPTIONS[1],
-      month: 4,
-      item: '棧板',
-      vehicle: '7.5T 大貨車',
-      fuelType: '柴油',
-      origin: '桃園市',
-      destination: '高雄市',
-      quantity: 42,
-      unitWeightKg: 12,
-      distanceKm: 330,
-      dataSource: '外包物流運送紀錄',
-      factorSource: FACTOR_SOURCE,
-      attachments: [],
-      notes: '棧板回收循環使用',
-    },
-  ];
+  let records: ConsumableRecord[] = [];
 
   let currentStatus: AuditStatus = 'Draft';
   let currentAttachments: string[] = [];
@@ -271,8 +242,22 @@ export function initUpstreamLogisticsConsumables() {
     showMessage(`資料已退回。原因：${reason}`);
   });
 
+  void loadInitialRecords();
   renderTable();
   updateStatusUI();
+
+  async function loadInitialRecords() {
+    try {
+      const rows = await loadCsvRows(CONSUMABLES_DATA_PATH);
+      records = rows
+        .map(mapRowToRecord)
+        .filter((record): record is ConsumableRecord => record !== null);
+      renderTable();
+    } catch (error) {
+      console.error('Failed to load consumable records from CSV.', error);
+      showMessage('初始化資料載入失敗，請稍後再試。');
+    }
+  }
 
   function renderTable() {
     tableBody.innerHTML = '';
@@ -309,6 +294,63 @@ export function initUpstreamLogisticsConsumables() {
 
       tableBody.appendChild(row);
     });
+  }
+
+  function mapRowToRecord(row: CsvRow): ConsumableRecord | null {
+    const month = parseInteger(row.month);
+    const quantity = parseNumber(row.quantity);
+    const unitWeightKg = parseNumber(row.unitWeightKg);
+    const distanceKm = parseNumber(row.distanceKm);
+
+    if (!row.location || !row.item || !row.vehicle || !row.fuelType || !row.origin || !row.destination) {
+      return null;
+    }
+
+    if (!Number.isFinite(month) || month <= 0) {
+      return null;
+    }
+
+    if (!Number.isFinite(quantity) || !Number.isFinite(unitWeightKg) || !Number.isFinite(distanceKm)) {
+      return null;
+    }
+
+    return {
+      location: row.location,
+      month,
+      item: row.item,
+      vehicle: row.vehicle,
+      fuelType: row.fuelType,
+      origin: row.origin,
+      destination: row.destination,
+      quantity,
+      unitWeightKg,
+      distanceKm,
+      dataSource: row.dataSource?.trim() || '',
+      factorSource: row.factorSource?.trim() || FACTOR_SOURCE,
+      attachments: parseAttachmentList(row.attachments),
+      notes: row.notes?.trim() ? row.notes.trim() : undefined,
+    };
+  }
+
+  function parseAttachmentList(value?: string): string[] {
+    if (!value) {
+      return [];
+    }
+
+    return value
+      .split(';')
+      .map((item) => item.trim())
+      .filter((item) => item.length > 0);
+  }
+
+  function parseNumber(value?: string): number {
+    const result = Number(value ?? '');
+    return Number.isFinite(result) ? result : NaN;
+  }
+
+  function parseInteger(value?: string): number {
+    const result = Number.parseInt(value ?? '', 10);
+    return Number.isFinite(result) ? result : NaN;
   }
 
   function updateStatusUI() {
