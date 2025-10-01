@@ -1,0 +1,3 @@
+depot,activityId,fuelType,month,quantity,unit,dataSource,notes,attachments
+台中營運中心,GEN-001,柴油,2,1850,公升,柴油採購紀錄-202402,例行測試運轉 6 小時,採購單_202402.pdf
+彰化配送據點,GEN-002,95 無鉛汽油,3,320,公升,據點設備油品填報,,

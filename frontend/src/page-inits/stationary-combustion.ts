@@ -1,3 +1,5 @@
+import { loadCsvRows, type CsvRow } from '../utils/csv-loader';
+
 const LITER_PER_GALLON = 3.78541;
 
 type AuditStatus = 'Draft' | 'Submitted' | 'L1Approved' | 'L2Approved';
@@ -65,6 +67,7 @@ const ACTIVITIES: ActivityDefinition[] = [
 ];
 
 const FACTOR_SOURCE = '環保署固定燃燒排放係數表 (2024 年度)';
+const COMBUSTION_DATA_PATH = `${import.meta.env.BASE_URL}data/stationary-combustion.csv`;
 
 const FACTOR_TABLE: Record<FuelType, FactorEntry> = {
   '92 無鉛汽油': {
@@ -195,29 +198,7 @@ export function initStationaryCombustion() {
   let presetContext: { depot?: string; activityId?: string; fuelType?: FuelType } | null = null;
   let statusResetTimeout: number | undefined;
 
-  const records: CombustionRecord[] = [
-    {
-      depot: '台中營運中心',
-      activityId: 'GEN-001',
-      fuelType: '柴油',
-      month: 2,
-      quantity: 1850,
-      unit: '公升',
-      dataSource: '柴油採購紀錄-202402',
-      notes: '例行測試運轉 6 小時',
-      attachments: ['採購單_202402.pdf'],
-    },
-    {
-      depot: '彰化配送據點',
-      activityId: 'GEN-002',
-      fuelType: '95 無鉛汽油',
-      month: 3,
-      quantity: 320,
-      unit: '公升',
-      dataSource: '據點設備油品填報',
-      attachments: [],
-    },
-  ];
+  let records: CombustionRecord[] = [];
 
   populateSelect(
     depotSelect,
@@ -335,8 +316,22 @@ export function initStationaryCombustion() {
     returnError.textContent = '';
   });
 
+  void loadInitialRecords();
   updateStatusUI();
   renderTable();
+
+  async function loadInitialRecords() {
+    try {
+      const rows = await loadCsvRows(COMBUSTION_DATA_PATH);
+      records = rows
+        .map(mapRowToRecord)
+        .filter((record): record is CombustionRecord => record !== null);
+      renderTable();
+    } catch (error) {
+      console.error('Failed to load stationary combustion records from CSV.', error);
+      updateStatusUI('初始化資料載入失敗，請稍後再試。');
+    }
+  }
 
   function openAddModal() {
     if (presetContext?.depot) {
@@ -444,6 +439,69 @@ export function initStationaryCombustion() {
 
       tableBody.appendChild(row);
     });
+  }
+
+  function mapRowToRecord(row: CsvRow): CombustionRecord | null {
+    const depot = row.depot?.trim();
+    const activityId = row.activityId?.trim();
+    const fuelType = (row.fuelType?.trim() ?? '') as FuelType;
+    const month = parseInteger(row.month);
+    const quantity = parseNumber(row.quantity);
+    const unit = parseUnit(row.unit);
+
+    if (!depot || !activityId || !ALL_FUELS.includes(fuelType) || !unit) {
+      return null;
+    }
+
+    if (!Number.isFinite(month) || month < 1 || month > 12) {
+      return null;
+    }
+
+    if (!Number.isFinite(quantity) || quantity < 0) {
+      return null;
+    }
+
+    const notes = row.notes?.trim();
+
+    return {
+      depot,
+      activityId,
+      fuelType,
+      month,
+      quantity,
+      unit,
+      dataSource: row.dataSource?.trim() || '',
+      notes: notes && notes.length > 0 ? notes : undefined,
+      attachments: parseAttachmentList(row.attachments),
+    };
+  }
+
+  function parseAttachmentList(value?: string): string[] {
+    if (!value) {
+      return [];
+    }
+
+    return value
+      .split(';')
+      .map((item) => item.trim())
+      .filter((item) => item.length > 0);
+  }
+
+  function parseNumber(value?: string): number {
+    const result = Number(value ?? '');
+    return Number.isFinite(result) ? result : NaN;
+  }
+
+  function parseInteger(value?: string): number {
+    const result = Number.parseInt(value ?? '', 10);
+    return Number.isFinite(result) ? result : NaN;
+  }
+
+  function parseUnit(value?: string): CombustionRecord['unit'] | null {
+    if (value === '公升' || value === '加侖') {
+      return value;
+    }
+    return null;
   }
 
   function updateStatusUI(message?: string) {

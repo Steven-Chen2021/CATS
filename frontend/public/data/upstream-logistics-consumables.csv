@@ -1,0 +1,3 @@
+location,month,item,vehicle,fuelType,origin,destination,quantity,unitWeightKg,distanceKm,dataSource,factorSource,attachments,notes
+北一倉儲中心,3,瓦楞紙箱 (大),3.5T 小貨車,柴油,台北市,台中市,320,0.85,170,物流系統出貨紀錄,交通運輸排放係數資料庫 2024 年版,出貨單據_20240315.pdf,
+桃園轉運倉,4,棧板,7.5T 大貨車,柴油,桃園市,高雄市,42,12,330,外包物流運送紀錄,交通運輸排放係數資料庫 2024 年版,,棧板回收循環使用
