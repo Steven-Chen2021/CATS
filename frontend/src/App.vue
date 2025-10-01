@@ -454,6 +454,9 @@ import('./page-inits/business-travel')
       (pageInitializers['pages/business-travel.html'] = m.initBusinessTravel)
   )
   .catch(() => {});
+import('./page-inits/mobile-sources')
+  .then((m) => (pageInitializers['pages/mobile-sources.html'] = m.initMobileSources))
+  .catch(() => {});
 
 const activeHref = ref('');
 const activeContent = ref('');
