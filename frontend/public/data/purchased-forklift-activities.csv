@@ -1,0 +1,4 @@
+site_name,depot_name,model,usage,purchase_date,energy_type,annual_usage,usage_unit,emission_factor,emission_factor_unit,gwp,emissions,data_source,factor_source,attachments,notes
+北區物流樞紐,新莊自動倉,TOYOTA 8FBE20,高架儲位揀貨,2024-01-15,電力,12500,kWh,0.495,kg CO2e/kWh,1,6187.5,採購系統匯出,台電公告排放係數(2024),採購單_202402.pdf|倉儲堆高機採購單,新增自動倉專用電動堆高機
+北區物流樞紐,新莊自動倉,TOYOTA 8FBE25,月台裝卸,2023-11-30,柴油,4200,公升,2.68,kg CO2e/公升,1,11256,調度單管理系統,能源局固定燃燒排放係數(2024),調度單_202406.pdf|柴油補給調度單,租賃車輛汰換為自有堆高機
+南區配送中心,高雄港冷鏈倉,LINDE E16,冷鏈出貨,2024-03-10,電力,9800,kWh,0.495,kg CO2e/kWh,1,4851,倉儲能源抄表,台電公告排放係數(2024),溫度紀錄表_202406.xlsx|冷鏈倉溫度紀錄,冷鏈倉儲區專用設備
