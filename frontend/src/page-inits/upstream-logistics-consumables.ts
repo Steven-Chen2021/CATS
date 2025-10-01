@@ -2,6 +2,8 @@ import { loadCsvRows, type CsvRow } from '../utils/csv-loader';
 
 type AuditStatus = 'Draft' | 'Submitted' | 'L1Approved' | 'L2Approved';
 
+type Attachment = { name: string; url: string };
+
 type ConsumableRecord = {
   location: string;
   month: number;
@@ -15,7 +17,7 @@ type ConsumableRecord = {
   distanceKm: number;
   dataSource: string;
   factorSource: string;
-  attachments: string[];
+  attachments: Attachment[];
   notes?: string;
 };
 
@@ -49,6 +51,7 @@ const EMISSION_FACTORS: Record<string, number> = {
 
 const FACTOR_SOURCE = '交通運輸排放係數資料庫 2024 年版';
 const CONSUMABLES_DATA_PATH = `${import.meta.env.BASE_URL}data/upstream-logistics-consumables.csv`;
+const ATTACHMENT_BASE_PATH = `${import.meta.env.BASE_URL}attachments/`;
 
 const numberFormatter = new Intl.NumberFormat('zh-TW', {
   minimumFractionDigits: 0,
@@ -120,7 +123,7 @@ export function initUpstreamLogisticsConsumables() {
   let records: ConsumableRecord[] = [];
 
   let currentStatus: AuditStatus = 'Draft';
-  let currentAttachments: string[] = [];
+  let currentAttachments: Attachment[] = [];
   let statusTimeout: number | undefined;
 
   populateSelect(
@@ -148,8 +151,10 @@ export function initUpstreamLogisticsConsumables() {
   browseButton.addEventListener('click', () => attachmentInput.click());
 
   attachmentInput.addEventListener('change', () => {
-    currentAttachments = collectAttachmentNames(attachmentInput.files);
+    revokeAttachmentUrls(currentAttachments);
+    currentAttachments = collectAttachments(attachmentInput.files);
     renderAttachmentList(attachmentList, currentAttachments);
+    attachmentInput.value = '';
   });
 
   dropZone.addEventListener('dragover', (event) => {
@@ -167,8 +172,10 @@ export function initUpstreamLogisticsConsumables() {
 
     const files = event.dataTransfer?.files;
     if (files && files.length > 0) {
-      currentAttachments = collectAttachmentNames(files);
+      revokeAttachmentUrls(currentAttachments);
+      currentAttachments = collectAttachments(files);
       renderAttachmentList(attachmentList, currentAttachments);
+      attachmentInput.value = '';
     }
   });
 
@@ -214,9 +221,11 @@ export function initUpstreamLogisticsConsumables() {
 
   addButton.addEventListener('click', () => {
     addForm.reset();
+    revokeAttachmentUrls(currentAttachments);
     currentAttachments = [];
     renderAttachmentList(attachmentList, currentAttachments);
     unitWeightInput.value = '';
+    attachmentInput.value = '';
     openModal(addModal);
     addError.textContent = '';
     monthSelect.focus();
@@ -276,21 +285,22 @@ export function initUpstreamLogisticsConsumables() {
       const emission = totalWeight * record.distanceKm * emissionFactor;
 
       appendCell(row, SITE_NAME);
-      appendCell(row, record.location);
-      appendCell(row, `${record.month} 月`);
-      appendCell(row, record.item);
-      appendCell(row, record.vehicle);
-      appendCell(row, record.fuelType);
-      appendCell(row, record.origin);
-      appendCell(row, record.destination);
-      appendCell(row, numberFormatter.format(record.quantity));
-      appendCell(row, numberFormatter.format(record.unitWeightKg));
+      appendCell(row, record.location, true);
+      appendCell(row, `${record.month} 月`, true);
+      appendCell(row, record.item, true);
+      appendCell(row, record.vehicle, true);
+      appendCell(row, record.fuelType, true);
+      appendCell(row, record.origin, true);
+      appendCell(row, record.destination, true);
+      appendCell(row, numberFormatter.format(record.quantity), true);
+      appendCell(row, numberFormatter.format(record.unitWeightKg), true);
       appendCell(row, weightFormatter.format(totalWeight));
-      appendCell(row, numberFormatter.format(record.distanceKm));
+      appendCell(row, numberFormatter.format(record.distanceKm), true);
       appendCell(row, weightFormatter.format(emissionFactor));
       appendCell(row, numberFormatter.format(emission));
-      appendCell(row, record.dataSource);
+      appendCell(row, record.dataSource, true);
       appendCell(row, record.factorSource);
+      row.appendChild(createAttachmentCell(record));
 
       tableBody.appendChild(row);
     });
@@ -332,15 +342,52 @@ export function initUpstreamLogisticsConsumables() {
     };
   }
 
-  function parseAttachmentList(value?: string): string[] {
+  function parseAttachmentList(value?: string): Attachment[] {
     if (!value) {
       return [];
     }
 
     return value
-      .split(';')
+      .split(/[;,]/)
       .map((item) => item.trim())
-      .filter((item) => item.length > 0);
+      .filter((item) => item.length > 0)
+      .map((entry) => parseAttachmentEntry(entry))
+      .filter((attachment): attachment is Attachment => Boolean(attachment));
+  }
+
+  function parseAttachmentEntry(entry: string): Attachment | null {
+    if (!entry) {
+      return null;
+    }
+
+    const [rawName, rawUrl] = entry.split('|');
+    const name = rawName?.trim() ?? '';
+
+    if (!name) {
+      return null;
+    }
+
+    const url = rawUrl && rawUrl.trim().length > 0
+      ? resolveAttachmentUrl(rawUrl.trim())
+      : `${ATTACHMENT_BASE_PATH}${encodeURIComponent(name)}`;
+
+    return { name, url };
+  }
+
+  function resolveAttachmentUrl(path: string) {
+    if (!path) {
+      return '';
+    }
+
+    if (/^https?:\/\//i.test(path)) {
+      return path;
+    }
+
+    try {
+      return new URL(path, `${window.location.origin}${import.meta.env.BASE_URL}`).toString();
+    } catch {
+      return path;
+    }
   }
 
   function parseNumber(value?: string): number {
@@ -430,8 +477,72 @@ export function initUpstreamLogisticsConsumables() {
     return EMISSION_FACTORS[key] ?? 0.102;
   }
 
-  function appendCell(row: HTMLTableRowElement, text: string) {
+  function createAttachmentCell(record: ConsumableRecord) {
     const cell = document.createElement('td');
+    cell.classList.add('attachment-cell', 'is-editable-cell');
+
+    if (record.attachments.length > 0) {
+      const list = document.createElement('ul');
+      list.className = 'attachment-links';
+
+      record.attachments.forEach(({ name, url }) => {
+        const item = document.createElement('li');
+        const link = document.createElement('a');
+        link.href = url;
+        link.textContent = name;
+        link.download = name;
+        link.target = '_blank';
+        link.rel = 'noopener noreferrer';
+        item.appendChild(link);
+        list.appendChild(item);
+      });
+
+      cell.appendChild(list);
+    } else {
+      const placeholder = document.createElement('span');
+      placeholder.className = 'attachment-empty';
+      placeholder.textContent = '未上傳';
+      cell.appendChild(placeholder);
+    }
+
+    const fileInput = document.createElement('input');
+    fileInput.type = 'file';
+    fileInput.multiple = true;
+    fileInput.hidden = true;
+
+    const uploadButton = document.createElement('button');
+    uploadButton.type = 'button';
+    uploadButton.className = 'attachment-upload-button';
+    uploadButton.textContent = record.attachments.length > 0 ? '重新上傳' : '上傳附件';
+
+    uploadButton.addEventListener('click', () => {
+      fileInput.click();
+    });
+
+    fileInput.addEventListener('change', () => {
+      const files = fileInput.files;
+      if (!files || files.length === 0) {
+        return;
+      }
+
+      revokeAttachmentUrls(record.attachments);
+      record.attachments = collectAttachments(files);
+      fileInput.value = '';
+      renderTable();
+      showMessage(`${record.item} 的附件已更新。`);
+    });
+
+    cell.appendChild(fileInput);
+    cell.appendChild(uploadButton);
+
+    return cell;
+  }
+
+  function appendCell(row: HTMLTableRowElement, text: string, isEditable = false) {
+    const cell = document.createElement('td');
+    if (isEditable) {
+      cell.classList.add('is-editable-cell');
+    }
     cell.textContent = text;
     row.appendChild(cell);
   }
@@ -462,18 +573,30 @@ export function initUpstreamLogisticsConsumables() {
     return numeric;
   }
 
-  function collectAttachmentNames(fileList: FileList | null) {
-    if (!fileList) return [];
-    return Array.from(fileList).map((file) => file.name);
+  function collectAttachments(fileList: FileList | null): Attachment[] {
+    if (!fileList || fileList.length === 0) {
+      return [];
+    }
+
+    return Array.from(fileList).map((file) => ({
+      name: file.name,
+      url: URL.createObjectURL(file),
+    }));
   }
 
-  function renderAttachmentList(list: HTMLElement, attachments: string[]) {
+  function renderAttachmentList(list: HTMLElement, attachments: Attachment[]) {
     list.innerHTML = '';
-    attachments.forEach((name) => {
+    attachments.forEach(({ name }) => {
       const item = document.createElement('li');
       item.textContent = name;
       list.appendChild(item);
     });
+  }
+
+  function revokeAttachmentUrls(attachments: Attachment[]) {
+    attachments
+      .filter((attachment) => attachment.url.startsWith('blob:'))
+      .forEach((attachment) => URL.revokeObjectURL(attachment.url));
   }
 
   function openModal(modal: HTMLElement) {
