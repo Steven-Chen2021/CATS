@@ -457,6 +457,12 @@ import('./page-inits/business-travel')
 import('./page-inits/mobile-sources')
   .then((m) => (pageInitializers['pages/mobile-sources.html'] = m.initMobileSources))
   .catch(() => {});
+import('./page-inits/fugitive-emissions')
+  .then(
+    (m) =>
+      (pageInitializers['pages/fugitive-emissions.html'] = m.initFugitiveEmissions)
+  )
+  .catch(() => {});
 
 const activeHref = ref('');
 const activeContent = ref('');
