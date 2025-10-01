@@ -24,32 +24,33 @@ type ConsumableRecord = {
 type Option = { value: string | number; label: string };
 
 const INVENTORY_YEAR = '2024';
-const SITE_NAME = '台北物流中心';
+const SITE_NAME = '台北營運總部';
 
-const DEPOT_OPTIONS = ['北一倉儲中心', '桃園轉運倉', '高雄配銷點'];
+const DEPOT_OPTIONS = ['內湖辦公中心', '新莊後勤倉', '高雄服務據點'];
 
-const VEHICLE_OPTIONS = ['3.5T 小貨車', '7.5T 大貨車', '冷鏈貨櫃車'];
+const VEHICLE_OPTIONS = ['3.5T 以下小貨車', '7.5T 物流貨車', '冷鏈配送貨櫃車'];
 
-const FUEL_OPTIONS = ['92 無鉛汽油', '95 無鉛汽油', '柴油', '航空煤油'];
+const FUEL_OPTIONS = ['92 無鉛汽油', '95 無鉛汽油', '98 無鉛汽油', '柴油', '航空煤油'];
 
 const CONSUMABLE_ITEMS: { name: string; weightKg: number }[] = [
-  { name: '瓦楞紙箱 (大)', weightKg: 0.85 },
-  { name: '瓦楞紙箱 (中)', weightKg: 0.65 },
-  { name: '填充氣泡袋', weightKg: 0.08 },
-  { name: '棧板', weightKg: 12 },
-  { name: '保冷袋', weightKg: 0.45 },
+  { name: 'A4 影印紙箱 (5 仟)', weightKg: 12.5 },
+  { name: 'A3 影印紙箱 (3 仟)', weightKg: 13.2 },
+  { name: '雙色碳粉匣', weightKg: 0.9 },
+  { name: '活頁資料夾組', weightKg: 1.8 },
+  { name: '辦公文具綜合箱', weightKg: 8.2 },
 ];
 
 const EMISSION_FACTORS: Record<string, number> = {
-  '3.5T 小貨車|92 無鉛汽油': 0.168,
-  '3.5T 小貨車|95 無鉛汽油': 0.171,
-  '3.5T 小貨車|柴油': 0.149,
-  '7.5T 大貨車|柴油': 0.131,
-  '冷鏈貨櫃車|柴油': 0.189,
-  '冷鏈貨櫃車|航空煤油': 0.215,
+  '3.5T 以下小貨車|92 無鉛汽油': 0.168,
+  '3.5T 以下小貨車|95 無鉛汽油': 0.171,
+  '3.5T 以下小貨車|98 無鉛汽油': 0.176,
+  '3.5T 以下小貨車|柴油': 0.149,
+  '7.5T 物流貨車|柴油': 0.131,
+  '冷鏈配送貨櫃車|柴油': 0.189,
+  '冷鏈配送貨櫃車|航空煤油': 0.215,
 };
 
-const FACTOR_SOURCE = '交通運輸排放係數資料庫 2024 年版';
+const FACTOR_SOURCE = '運輸部門排放係數資料庫 2024 年版';
 const CONSUMABLES_DATA_PATH = `${import.meta.env.BASE_URL}data/upstream-logistics-consumables.csv`;
 const ATTACHMENT_BASE_PATH = `${import.meta.env.BASE_URL}attachments/`;
 
