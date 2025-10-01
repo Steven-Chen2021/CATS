@@ -1,4 +1,73 @@
-<section class="page-content">
-  <h1>採購商品或服務－倉儲堆高機</h1>
-  <p>掌握倉儲堆高機採購或租賃活動產生的排放。</p>
+<section class="page-content purchased-forklift-page" aria-labelledby="purchasedForkliftHeading">
+  <header class="page-header">
+    <div class="page-header__text">
+      <h1 id="purchasedForkliftHeading">採購商品或服務－倉儲堆高機</h1>
+      <p>掌握倉儲堆高機採購或租賃活動產生的排放，支援資料維護與審核流程。</p>
+    </div>
+    <button id="addForkliftRecordButton" class="primary-action" type="button">新增活動資料</button>
+  </header>
+
+  <section class="info-card" aria-labelledby="forkliftInfoHeading">
+    <div class="info-card__row">
+      <div class="info-field">
+        <dt id="forkliftInfoHeading">盤查年份</dt>
+        <dd id="forkliftInventoryYear">2024 年</dd>
+      </div>
+      <div class="info-field">
+        <dt>資料審核狀態</dt>
+        <dd>
+          <span id="forkliftAuditStatus" class="status-badge status-badge--draft" aria-live="polite">草稿</span>
+        </dd>
+      </div>
+      <div class="info-field info-field--actions">
+        <dt class="sr-only">審核操作</dt>
+        <dd>
+          <div id="forkliftAuditActions" class="button-group" role="group" aria-label="審核操作"></div>
+        </dd>
+      </div>
+    </div>
+    <p id="forkliftAuditMessage" class="info-card__message" role="status" aria-live="polite"></p>
+  </section>
+
+  <section class="table-card" aria-labelledby="forkliftTableHeading">
+    <div class="table-card__header">
+      <h2 id="forkliftTableHeading">活動資料清單</h2>
+      <p>系統依據輸入資料與排放係數自動計算溫室氣體排放量。</p>
+    </div>
+    <div class="table-scroll" role="region" aria-labelledby="forkliftTableHeading">
+      <table class="data-table forklift-table" aria-describedby="forkliftInventoryYear">
+        <thead>
+          <tr>
+            <th scope="col">站點名稱</th>
+            <th scope="col">據點名稱</th>
+            <th scope="col">堆高機型號</th>
+            <th scope="col">使用用途</th>
+            <th scope="col">採購或租賃日期</th>
+            <th scope="col">能源種類</th>
+            <th scope="col">年度使用量</th>
+            <th scope="col">使用量單位</th>
+            <th scope="col">排放係數</th>
+            <th scope="col">排放係數單位</th>
+            <th scope="col">GWP</th>
+            <th scope="col">溫室氣體排放量 (kg CO₂e)</th>
+            <th scope="col">活動數據來源</th>
+            <th scope="col">係數來源</th>
+            <th scope="col">活動附件</th>
+            <th scope="col">備註</th>
+          </tr>
+        </thead>
+        <tbody id="forkliftTableBody"></tbody>
+      </table>
+    </div>
+    <p id="forkliftEmptyMessage" class="table-card__empty" hidden>目前尚無活動資料，請新增資料。</p>
+  </section>
+
+  <section class="page-hint">
+    <h2>填寫說明</h2>
+    <ul>
+      <li>站點與據點名稱由系統依排放源設定自動帶入，無需手動輸入。</li>
+      <li>排放係數與 GWP 由係數表依條件自動套用，輸入使用量即可計算排放量。</li>
+      <li>活動數據來源與附件請提供可追溯的檔案或說明，確保審核流程順利。</li>
+    </ul>
+  </section>
 </section>
