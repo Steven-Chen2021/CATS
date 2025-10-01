@@ -1,8 +1,8 @@
 <section class="page-content upstream-consumables-page">
   <header class="page-header">
     <div class="page-header__text">
-      <h1>上游運輸辦公耗材</h1>
-      <p>彙整辦公耗材調撥運輸資料、計算排放量並支援審核作業流程。</p>
+      <h1>上游運輸物流經常耗材</h1>
+      <p>彙整物流經常耗材調撥運輸資料、計算排放量並支援審核作業流程。</p>
     </div>
     <button id="addRecordButton" class="primary-action" type="button">新增活動資料</button>
   </header>
@@ -41,7 +41,7 @@
             <th scope="col">站點名稱</th>
             <th scope="col">據點名稱</th>
             <th scope="col">月份</th>
-            <th scope="col">辦公耗材品項</th>
+            <th scope="col">物流業經常耗材品項</th>
             <th scope="col">運具</th>
             <th scope="col">運具用油類型</th>
             <th scope="col">貨物起點</th>
@@ -67,7 +67,7 @@
     <h2>填寫說明</h2>
     <ul>
       <li>站點名稱由系統依登入帳號自動帶入，使用者無須手動輸入。</li>
-      <li>貨物總重量、排放係數與排放量皆由系統自動計算。</li>
+      <li>物流業經常耗材品項與單品重量會由系統依據清單自動帶出，貨物總重量與排放量亦自動計算。</li>
       <li>品項數量、單品重量與運輸距離欄位僅允許輸入 0 以上之數值。</li>
     </ul>
   </section>
@@ -90,7 +90,7 @@
             <select name="month" id="modalMonthSelect" required></select>
           </label>
           <label class="form-field">
-            <span class="form-label">辦公耗材品項</span>
+            <span class="form-label">物流業經常耗材品項</span>
             <select name="item" id="modalItemSelect" required></select>
           </label>
           <label class="form-field">
