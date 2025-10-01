@@ -1,4 +1,256 @@
-<section class="page-content">
-  <h1>逸散性排放 (飲水機、滅火器、補滅火器)</h1>
-  <p>登錄與追蹤逸散性設備補充與檢修資訊。</p>
+<section class="page-content fugitive-emissions-page">
+  <header class="page-header">
+    <div class="page-header__text">
+      <h1>逸散性排放源活動蒐集</h1>
+      <p>追蹤飲水機與滅火器等逸散性設備的冷媒補充紀錄與排放計算。</p>
+    </div>
+    <button id="openFugitiveAddModal" class="primary-action" type="button">新增</button>
+  </header>
+
+  <section class="info-card" aria-labelledby="fugitiveInfoHeading">
+    <div class="info-card__row">
+      <div class="info-field">
+        <dt id="fugitiveInfoHeading">盤查年份</dt>
+        <dd id="fugitiveInventoryYear">2024 年</dd>
+      </div>
+      <div class="info-field">
+        <dt>資料審核狀態</dt>
+        <dd>
+          <span id="fugitiveAuditStatus" class="status-badge status-badge--draft" aria-live="polite">草稿</span>
+        </dd>
+      </div>
+      <div class="info-field info-field--actions">
+        <dt class="sr-only">審核操作</dt>
+        <dd>
+          <div id="fugitiveAuditActions" class="button-group" role="group" aria-label="審核操作"></div>
+        </dd>
+      </div>
+    </div>
+    <p id="fugitiveAuditMessage" class="info-card__message" role="status" aria-live="polite"></p>
+  </section>
+
+  <section class="table-card">
+    <div class="table-card__header">
+      <h2>活動資料清單</h2>
+      <p>系統依活動數據與排放係數自動計算溫室氣體排放量。</p>
+    </div>
+    <div class="table-scroll">
+      <table class="data-table" aria-describedby="fugitiveInventoryYear">
+        <thead>
+          <tr>
+            <th scope="col">站點名稱</th>
+            <th scope="col">據點名稱</th>
+            <th scope="col">活動/設備</th>
+            <th scope="col">型號</th>
+            <th scope="col">活動數據 (kg)</th>
+            <th scope="col">內容物種類</th>
+            <th scope="col">排放係數</th>
+            <th scope="col">排放係數單位</th>
+            <th scope="col">GWP</th>
+            <th scope="col">溫室氣體排放量 (kg CO₂e)</th>
+            <th scope="col">活動數據來源</th>
+            <th scope="col">係數來源</th>
+            <th scope="col">係數類型</th>
+            <th scope="col">活動附件</th>
+            <th scope="col">備註</th>
+          </tr>
+        </thead>
+        <tbody id="fugitiveTableBody"></tbody>
+      </table>
+    </div>
+    <p id="fugitiveEmptyMessage" class="table-card__empty" hidden>目前尚無活動資料，請新增資料。</p>
+  </section>
+
+  <section class="page-hint">
+    <h2>填寫說明</h2>
+    <ul>
+      <li>站點名稱與設備型號由系統依排放源設定自動帶入。</li>
+      <li>排放係數與 GWP 由計算係數表決定，不需手動輸入。</li>
+      <li>活動數據欄位僅接受 0 以上之數值，並請填寫資料來源。</li>
+    </ul>
+  </section>
+
+  <div id="fugitiveAddModal" class="modal" aria-hidden="true">
+    <div class="modal__overlay" data-close-modal></div>
+    <div class="modal__dialog" role="dialog" aria-modal="true" aria-labelledby="fugitiveAddModalTitle">
+      <header class="modal__header">
+        <h2 id="fugitiveAddModalTitle">新增逸散性排放活動資料</h2>
+        <button class="modal__close" type="button" data-close-modal aria-label="關閉新增視窗"></button>
+      </header>
+      <form id="fugitiveAddForm" class="modal__body">
+        <div class="form-grid">
+          <label class="form-field">
+            <span class="form-label">據點名稱</span>
+            <select id="fugitiveModalDepot" name="depot" required></select>
+          </label>
+          <label class="form-field">
+            <span class="form-label">活動/設備</span>
+            <select id="fugitiveModalActivity" name="activity" required></select>
+          </label>
+          <label class="form-field">
+            <span class="form-label">型號</span>
+            <input id="fugitiveModalModel" name="model" type="text" readonly />
+          </label>
+          <label class="form-field">
+            <span class="form-label">活動數據 (kg)</span>
+            <input id="fugitiveModalQuantity" name="quantity" type="number" inputmode="decimal" min="0" step="0.01" required />
+          </label>
+          <label class="form-field">
+            <span class="form-label">內容物種類</span>
+            <select id="fugitiveModalContent" name="content" required></select>
+          </label>
+          <label class="form-field form-field--span">
+            <span class="form-label">活動數據來源</span>
+            <input id="fugitiveModalDataSource" name="dataSource" type="text" required placeholder="例如：維修工單" />
+          </label>
+          <div class="form-field form-field--span">
+            <span class="form-label">活動附件 (選填)</span>
+            <div id="fugitiveModalDropZone" class="drop-zone">
+              <p>拖曳檔案至此或 <button id="fugitiveModalBrowse" type="button">選擇檔案</button></p>
+              <input id="fugitiveModalAttachment" name="attachment" type="file" multiple hidden />
+              <ul id="fugitiveModalAttachmentList" class="attachment-list" aria-live="polite"></ul>
+            </div>
+          </div>
+          <label class="form-field form-field--span">
+            <span class="form-label">備註 (選填)</span>
+            <textarea id="fugitiveModalNotes" name="notes" rows="2" placeholder="可補充洩漏原因或修繕說明"></textarea>
+          </label>
+        </div>
+        <p id="fugitiveModalError" class="form-error" role="alert"></p>
+        <footer class="modal__footer">
+          <button class="secondary-button" type="button" data-close-modal>取消</button>
+          <button class="primary-button" type="submit">儲存</button>
+        </footer>
+      </form>
+    </div>
+  </div>
+
+  <div id="fugitiveReturnModal" class="modal" aria-hidden="true">
+    <div class="modal__overlay" data-close-modal></div>
+    <div class="modal__dialog" role="dialog" aria-modal="true" aria-labelledby="fugitiveReturnModalTitle">
+      <header class="modal__header">
+        <h2 id="fugitiveReturnModalTitle">退回原因</h2>
+        <button class="modal__close" type="button" data-close-modal aria-label="關閉退回視窗"></button>
+      </header>
+      <form id="fugitiveReturnForm" class="modal__body">
+        <label class="form-field form-field--span">
+          <span class="form-label">請輸入退回原因</span>
+          <textarea id="fugitiveReturnReason" name="returnReason" rows="4" required placeholder="請說明退回原因"></textarea>
+        </label>
+        <p id="fugitiveReturnError" class="form-error" role="alert"></p>
+        <footer class="modal__footer">
+          <button class="secondary-button" type="button" data-close-modal>取消</button>
+          <button class="primary-button" type="submit">送出</button>
+        </footer>
+      </form>
+    </div>
+  </div>
 </section>
+
+<style>
+.fugitive-emissions-page {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.page-header h1 {
+  margin: 0;
+  font-size: 1.75rem;
+}
+
+.page-header p {
+  margin: 0.25rem 0 0;
+  color: #4b5563;
+}
+
+.page-header__text {
+  flex: 1;
+}
+
+.primary-action {
+  align-self: flex-start;
+  padding: 0.65rem 1.25rem;
+  background: #2563eb;
+  color: #fff;
+  border: none;
+  border-radius: 999px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.primary-action:hover,
+.primary-action:focus {
+  background: #1d4ed8;
+}
+
+.table-card__header p {
+  margin: 0.25rem 0 0;
+  color: #4b5563;
+}
+
+.data-table th,
+.data-table td {
+  white-space: nowrap;
+}
+
+.data-table td:nth-child(5),
+.data-table td:nth-child(10) {
+  text-align: right;
+}
+
+.attachment-links,
+.record-attachments,
+.attachment-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.attachment-links li + li {
+  margin-top: 0.25rem;
+}
+
+.attachment-links a {
+  color: #2563eb;
+  text-decoration: underline;
+}
+
+.drop-zone {
+  border: 1px dashed #94a3b8;
+  border-radius: 0.5rem;
+  padding: 0.75rem;
+  text-align: center;
+  color: #4b5563;
+}
+
+.drop-zone.is-dragover {
+  background: #eff6ff;
+  border-color: #2563eb;
+}
+
+.drop-zone button {
+  background: none;
+  border: none;
+  color: #2563eb;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.form-field--span {
+  grid-column: span 2;
+}
+
+.form-error {
+  color: #dc2626;
+  min-height: 1.25rem;
+}
+</style>

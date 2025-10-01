@@ -1,0 +1,7 @@
+depot,activityId,contentType,quantityKg,dataSource,notes,attachments
+北一倉儲區,FE-WTR-01,R134a,8.5,維修工單 #FE-2024-011,,fugitive-inspection-202401.pdf|attachments/fugitive-inspection-202401.pdf
+北一倉儲區,FE-EXT-CO2,CO2,12.0,滅火器保養紀錄 2024Q1,年度消防安檢需求,fugitive-extinguisher-2024.csv|attachments/fugitive-extinguisher-2024.csv
+北二維修區,FE-EXT-DRY,R600a,3.2,維修報告 #MX-2403,現場洩漏修復,
+冷鏈機房,FE-WTR-01,R134a,6.1,設備巡檢日誌,補充主機冷媒,
+北二維修區,FE-SPARE-01,CO2,4.5,備援資產盤點表,,fugitive-spare-202403.txt|attachments/fugitive-spare-202403.txt
+冷鏈機房,FE-EXT-CO2,CO2,9.8,滅火器月檢表,,
