@@ -1,0 +1,7 @@
+Station,Site,StartDate,EndDate,UsageSelf,UsageShared,Attachments,Notes
+北區營運站,台北總部,2024-01-01,2024-01-31,12850,960,2024-01-電費單.pdf|https://example.com/bills/2024-01.pdf,年度第一期電費
+北區營運站,台北總部,2024-02-01,2024-02-29,12040,880,2024-02-電費單.pdf|https://example.com/bills/2024-02.pdf,-
+北區營運站,新竹研發中心,2024-01-01,2024-01-31,8650,540,研發中心-2024-01-帳單.pdf|https://example.com/bills/rnd-2024-01.pdf,設備校驗期間增加用電
+北區營運站,新竹研發中心,2024-02-01,2024-02-29,8120,520,研發中心-2024-02-帳單.pdf|https://example.com/bills/rnd-2024-02.pdf,-
+北區營運站,台中營運處,2024-01-01,2024-01-31,9340,610,台中-2024-01-帳單.pdf|https://example.com/bills/taichung-2024-01.pdf,含公區照明調整
+北區營運站,台中營運處,2024-02-01,2024-02-29,9025,590,台中-2024-02-帳單.pdf|https://example.com/bills/taichung-2024-02.pdf,-

@@ -1,4 +1,631 @@
-<section class="page-content">
-  <h1>輸入電力的間接排放 (辦公室用電)</h1>
-  <p>分析用電數據以估算間接電力排放量。</p>
+<section class="page-content purchased-electricity-page" aria-labelledby="purchasedElectricityHeading">
+  <header class="page-header">
+    <div class="page-header__text">
+      <h1 id="purchasedElectricityHeading">外購電力排放源活動蒐集</h1>
+      <p>
+        管理據點辦公室用電活動資料，系統自動帶出站點與總度數，支援送審與審核流程，協助維持盤查資料的一致性。
+      </p>
+    </div>
+    <button id="addElectricityButton" class="primary-action" type="button">新增活動資料</button>
+  </header>
+
+  <section class="info-card" aria-labelledby="inventoryInfoHeading">
+    <div class="info-card__row">
+      <div class="info-field">
+        <dt id="inventoryInfoHeading">盤查年份</dt>
+        <dd id="inventoryYearDisplay">2024 年</dd>
+      </div>
+      <div class="info-field">
+        <dt>資料審核狀態</dt>
+        <dd>
+          <span id="auditStatusLabel" class="status-badge status-badge--draft" aria-live="polite">草稿</span>
+        </dd>
+      </div>
+      <div class="info-field info-field--actions">
+        <dt class="sr-only">審核操作</dt>
+        <dd>
+          <div id="auditActionButtons" class="button-group" role="group" aria-label="審核操作"></div>
+        </dd>
+      </div>
+    </div>
+    <p id="auditStatusMessage" class="info-card__message" role="status" aria-live="polite">
+      目前狀態為草稿，可繼續編輯或新增活動資料。
+    </p>
+  </section>
+
+  <section class="table-card" aria-labelledby="electricityTableHeading">
+    <div class="table-card__header">
+      <div>
+        <h2 id="electricityTableHeading">活動資料清單</h2>
+        <p>表格中黃色欄位為使用者輸入，其餘欄位由系統自動帶入或計算。</p>
+      </div>
+      <button id="tableAddButton" class="table-add-button" type="button">新增</button>
+    </div>
+    <div class="table-scroll" role="region" aria-labelledby="electricityTableHeading">
+      <table class="data-table electricity-table" aria-describedby="inventoryYearDisplay">
+        <thead>
+          <tr>
+            <th scope="col">站點名稱</th>
+            <th scope="col">據點名稱</th>
+            <th scope="col">計費起日</th>
+            <th scope="col">計費迄日</th>
+            <th scope="col">辦公室用電度數-A 自用</th>
+            <th scope="col">辦公室用電度數-B 公用分攤度數</th>
+            <th scope="col">總度數 (A+B)</th>
+            <th scope="col">活動附件</th>
+            <th scope="col">備註</th>
+          </tr>
+        </thead>
+        <tbody id="electricityTableBody"></tbody>
+      </table>
+    </div>
+    <p id="electricityEmptyMessage" class="table-card__empty" hidden>目前尚無活動資料，請點擊「新增」。</p>
+  </section>
+
+  <section class="page-hint">
+    <h2>填寫注意事項</h2>
+    <ul>
+      <li>站點名稱會依登入帳號自動帶出，無需手動輸入。</li>
+      <li>據點選項依站點設定提供，若僅有一個據點系統會自動選定。</li>
+      <li>辦公室用電度數欄位僅允許輸入 0 以上數字，總度數由系統自動計算。</li>
+      <li>可於活動附件欄位上傳電費單據，系統提供拖拉或瀏覽選擇檔案方式。</li>
+    </ul>
+  </section>
+
+  <div id="addElectricityModal" class="modal" aria-hidden="true">
+    <div class="modal__overlay" data-close-modal></div>
+    <div class="modal__dialog" role="dialog" aria-modal="true" aria-labelledby="addElectricityModalTitle">
+      <header class="modal__header">
+        <h2 id="addElectricityModalTitle">新增活動資料</h2>
+        <button class="modal__close" type="button" data-close-modal aria-label="關閉新增視窗"></button>
+      </header>
+      <form id="addElectricityForm" class="modal__body">
+        <div class="form-grid">
+          <label class="form-field">
+            <span class="form-label">據點名稱</span>
+            <select id="modalSiteSelect" name="site" required></select>
+          </label>
+          <label class="form-field">
+            <span class="form-label">計費起日</span>
+            <input id="modalStartDate" name="startDate" type="date" required />
+          </label>
+          <label class="form-field">
+            <span class="form-label">計費迄日</span>
+            <input id="modalEndDate" name="endDate" type="date" required />
+          </label>
+          <label class="form-field">
+            <span class="form-label">辦公室用電度數-A 自用</span>
+            <input id="modalUsageSelf" name="usageSelf" type="number" inputmode="decimal" min="0" step="0.1" required />
+          </label>
+          <label class="form-field">
+            <span class="form-label">辦公室用電度數-B 公用分攤度數</span>
+            <input id="modalUsageShared" name="usageShared" type="number" inputmode="decimal" min="0" step="0.1" required />
+          </label>
+          <label class="form-field form-field--span">
+            <span class="form-label">活動附件 (選填)</span>
+            <div id="attachmentDropZone" class="drop-zone">
+              <p>拖曳檔案至此或 <button id="browseAttachmentButton" type="button">選擇檔案</button></p>
+              <input id="attachmentInput" name="attachments" type="file" multiple hidden />
+              <ul id="attachmentPreview" class="attachment-list" aria-live="polite"></ul>
+            </div>
+          </label>
+          <label class="form-field form-field--span">
+            <span class="form-label">備註 (選填)</span>
+            <textarea id="modalNotes" name="notes" rows="2" placeholder="可補充申報說明"></textarea>
+          </label>
+        </div>
+        <p id="addElectricityError" class="form-error" role="alert"></p>
+        <footer class="modal__footer">
+          <button class="secondary-button" type="button" data-close-modal>取消</button>
+          <button class="primary-button" type="submit">儲存</button>
+        </footer>
+      </form>
+    </div>
+  </div>
+
+  <div id="returnReasonModal" class="modal" aria-hidden="true">
+    <div class="modal__overlay" data-close-modal></div>
+    <div class="modal__dialog" role="dialog" aria-modal="true" aria-labelledby="returnReasonModalTitle">
+      <header class="modal__header">
+        <h2 id="returnReasonModalTitle">退回原因</h2>
+        <button class="modal__close" type="button" data-close-modal aria-label="關閉退回視窗"></button>
+      </header>
+      <form id="returnReasonForm" class="modal__body">
+        <label class="form-field form-field--span">
+          <span class="form-label">請輸入退回原因</span>
+          <textarea id="returnReasonInput" name="returnReason" rows="4" required></textarea>
+        </label>
+        <p id="returnReasonError" class="form-error" role="alert"></p>
+        <footer class="modal__footer">
+          <button class="secondary-button" type="button" data-close-modal>取消</button>
+          <button class="primary-button" type="submit">送出</button>
+        </footer>
+      </form>
+    </div>
+  </div>
 </section>
+
+<style>
+.purchased-electricity-page {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  color: #1f2933;
+}
+
+.page-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.page-header h1 {
+  margin: 0;
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: #111827;
+}
+
+.page-header p {
+  margin: 0.5rem 0 0;
+  color: #4b5563;
+  line-height: 1.5;
+}
+
+.page-header__text {
+  flex: 1;
+}
+
+.primary-action {
+  align-self: flex-start;
+  border: none;
+  border-radius: 10px;
+  padding: 0.75rem 1.25rem;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #ffffff;
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  cursor: pointer;
+  box-shadow: 0 10px 20px rgba(37, 99, 235, 0.2);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.primary-action:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 12px 24px rgba(37, 99, 235, 0.25);
+}
+
+.info-card {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 1.5rem;
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.1);
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.info-card__row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 1.25rem;
+  align-items: center;
+}
+
+.info-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.info-field dt {
+  margin: 0;
+  font-size: 0.9rem;
+  color: #6b7280;
+  font-weight: 600;
+}
+
+.info-field dd {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #111827;
+}
+
+.info-field--actions {
+  justify-self: end;
+}
+
+.button-group {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.3rem 0.75rem;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.status-badge--draft {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.status-badge--submitted {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+.status-badge--l1approved {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.status-badge--approved {
+  background: #ede9fe;
+  color: #5b21b6;
+}
+
+.info-card__message {
+  margin: 0;
+  font-size: 0.95rem;
+  color: #374151;
+}
+
+.table-card {
+  background: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.table-card__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.table-card__header h2 {
+  margin: 0 0 0.35rem;
+  font-size: 1.4rem;
+  color: #1f2937;
+}
+
+.table-card__header p {
+  margin: 0;
+  color: #6b7280;
+  font-size: 0.95rem;
+}
+
+.table-add-button {
+  border: 1px solid #2563eb;
+  border-radius: 8px;
+  padding: 0.55rem 1.25rem;
+  background: #eff6ff;
+  color: #1d4ed8;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.table-add-button:hover {
+  background: #dbeafe;
+}
+
+.table-scroll {
+  overflow: auto;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+}
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 960px;
+}
+
+.data-table th,
+.data-table td {
+  padding: 0.75rem 1rem;
+  text-align: left;
+  border-bottom: 1px solid #e5e7eb;
+  vertical-align: top;
+}
+
+.data-table thead {
+  background: #f3f4f6;
+  color: #1f2937;
+}
+
+.data-table tbody tr:hover {
+  background: #f9fafb;
+}
+
+.data-table td[data-editable="true"] {
+  background: #fefce8;
+}
+
+.table-card__empty {
+  margin: 0;
+  color: #6b7280;
+  text-align: center;
+}
+
+.page-hint {
+  background: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
+  padding: 1.25rem;
+}
+
+.page-hint h2 {
+  margin-top: 0;
+  font-size: 1.2rem;
+  color: #1f2937;
+}
+
+.page-hint ul {
+  margin: 0.5rem 0 0;
+  padding-left: 1.2rem;
+  color: #4b5563;
+  line-height: 1.6;
+}
+
+.modal {
+  position: fixed;
+  inset: 0;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal[aria-hidden="false"] {
+  display: flex;
+}
+
+.modal__overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(17, 24, 39, 0.45);
+}
+
+.modal__dialog {
+  position: relative;
+  background: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.35);
+  width: min(640px, 90vw);
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.modal__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.25rem 1.5rem 0.75rem;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.modal__header h2 {
+  margin: 0;
+  font-size: 1.3rem;
+}
+
+.modal__close {
+  width: 2rem;
+  height: 2rem;
+  border: none;
+  background: transparent;
+  position: relative;
+  cursor: pointer;
+}
+
+.modal__close::before,
+.modal__close::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 1.2rem;
+  height: 2px;
+  background: #4b5563;
+  transform-origin: center;
+}
+
+.modal__close::before {
+  transform: translate(-50%, -50%) rotate(45deg);
+}
+
+.modal__close::after {
+  transform: translate(-50%, -50%) rotate(-45deg);
+}
+
+.modal__body {
+  padding: 1.25rem 1.5rem;
+  overflow-y: auto;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1rem;
+}
+
+.form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.form-field--span {
+  grid-column: 1 / -1;
+}
+
+.form-label {
+  font-weight: 600;
+  color: #374151;
+}
+
+.form-field input,
+.form-field select,
+.form-field textarea {
+  width: 100%;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  padding: 0.55rem 0.75rem;
+  font-size: 1rem;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.form-field input:focus,
+.form-field select:focus,
+.form-field textarea:focus {
+  border-color: #2563eb;
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
+}
+
+.drop-zone {
+  border: 2px dashed #93c5fd;
+  border-radius: 12px;
+  padding: 1rem;
+  text-align: center;
+  background: #eff6ff;
+  color: #1d4ed8;
+}
+
+.drop-zone.dragover {
+  background: #dbeafe;
+  border-color: #2563eb;
+}
+
+.drop-zone p {
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+}
+
+.drop-zone button {
+  border: none;
+  background: none;
+  color: #1d4ed8;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.attachment-list {
+  list-style: none;
+  padding: 0.75rem 0 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.attachment-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.attachment-item a {
+  color: #2563eb;
+  text-decoration: none;
+}
+
+.attachment-item button {
+  border: none;
+  background: none;
+  color: #ef4444;
+  cursor: pointer;
+}
+
+.modal__footer {
+  padding: 1rem 1.5rem 1.25rem;
+  border-top: 1px solid #e5e7eb;
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+}
+
+.primary-button {
+  border: none;
+  border-radius: 8px;
+  padding: 0.65rem 1.4rem;
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  color: #ffffff;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.primary-button:hover {
+  box-shadow: 0 8px 18px rgba(37, 99, 235, 0.25);
+}
+
+.secondary-button {
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  padding: 0.6rem 1.25rem;
+  background: #ffffff;
+  color: #374151;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.secondary-button:hover {
+  background: #f3f4f6;
+}
+
+.form-error {
+  color: #b91c1c;
+  min-height: 1.2rem;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  border: 0;
+}
+
+@media (max-width: 768px) {
+  .page-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .info-field--actions {
+    justify-self: stretch;
+  }
+
+  .table-card__header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .data-table {
+    min-width: 720px;
+  }
+}
+</style>

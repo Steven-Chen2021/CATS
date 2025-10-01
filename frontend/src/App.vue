@@ -448,6 +448,13 @@ import('./page-inits/inventory-summary')
         m.initInventorySummary)
   )
   .catch(() => {});
+import('./page-inits/indirect-electricity')
+  .then(
+    (m) =>
+      (pageInitializers['pages/indirect-electricity.html'] =
+        m.initIndirectElectricity)
+  )
+  .catch(() => {});
 import('./page-inits/business-travel')
   .then(
     (m) =>
