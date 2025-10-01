@@ -1,4 +1,647 @@
-<section class="page-content">
-  <h1>移動排放源 (公務汽車、貨車)</h1>
-  <p>紀錄車輛行駛與燃料使用資訊以計算移動排放。</p>
+<section class="page-content mobile-combustion-page" aria-labelledby="mobileCombustionHeading">
+  <header class="page-header">
+    <div class="page-header__text">
+      <h1 id="mobileCombustionHeading">移動燃燒排放源活動蒐集</h1>
+      <p>
+        管理公務車、貨車等移動燃燒排放源的加油紀錄。系統會依油料種類自動帶出排放係數並計算溫室氣體排放量，
+        協助完成盤查與審核流程。
+      </p>
+    </div>
+    <button id="openAddActivity" class="primary-action" type="button">新增活動資料</button>
+  </header>
+
+  <section class="info-card" aria-labelledby="inventoryInfoHeading">
+    <div class="info-card__row">
+      <div class="info-field">
+        <dt id="inventoryInfoHeading">盤查年份</dt>
+        <dd id="inventoryYearDisplay">—</dd>
+      </div>
+      <div class="info-field">
+        <dt>資料審核狀態</dt>
+        <dd>
+          <span id="auditStatusBadge" class="status-badge status-badge--draft" aria-live="polite">草稿</span>
+        </dd>
+      </div>
+      <div class="info-field info-field--actions">
+        <dt class="sr-only">審核操作</dt>
+        <dd>
+          <div id="auditActionButtons" class="button-group" role="group" aria-label="審核操作"></div>
+        </dd>
+      </div>
+    </div>
+    <p id="auditStatusMessage" class="info-card__message" role="status" aria-live="polite">
+      目前狀態為草稿，可繼續編輯或新增活動資料。
+    </p>
+  </section>
+
+  <section class="table-card" aria-labelledby="mobileActivityHeading">
+    <div class="table-card__header">
+      <h2 id="mobileActivityHeading">活動資料清單</h2>
+      <p>下表淡黃色欄位可編輯，其餘欄位由系統自動帶入或計算。</p>
+    </div>
+    <div class="table-scroll" role="region" aria-labelledby="mobileActivityHeading">
+      <table class="data-table mobile-activity-table">
+        <thead>
+          <tr>
+            <th scope="col" class="table-action-column">操作</th>
+            <th scope="col">站點名稱</th>
+            <th scope="col">據點名稱</th>
+            <th scope="col">車號</th>
+            <th scope="col">油料種類</th>
+            <th scope="col">月份</th>
+            <th scope="col">加油量 (L)</th>
+            <th scope="col">CO₂排放係數</th>
+            <th scope="col">CO₂排放係數單位</th>
+            <th scope="col">CO₂ GWP</th>
+            <th scope="col">CH₄排放係數</th>
+            <th scope="col">CH₄排放係數單位</th>
+            <th scope="col">CH₄ GWP</th>
+            <th scope="col">N₂O排放係數</th>
+            <th scope="col">N₂O排放係數單位</th>
+            <th scope="col">N₂O GWP</th>
+            <th scope="col">溫室氣體排放量 (kg CO₂e)</th>
+            <th scope="col">係數來源</th>
+            <th scope="col">活動附件</th>
+            <th scope="col">活動數據來源</th>
+            <th scope="col">備註</th>
+          </tr>
+        </thead>
+        <tbody id="mobileActivityTableBody"></tbody>
+      </table>
+    </div>
+    <p id="mobileEmptyMessage" class="table-card__empty" hidden>目前尚無活動資料，請點擊「新增活動資料」。</p>
+  </section>
+
+  <section class="page-hint">
+    <h2>填寫提醒</h2>
+    <ul>
+      <li>站點名稱由系統依登入帳號帶出，使用者無須輸入。</li>
+      <li>據點名稱會依站點顯示可選清單，若僅有一個據點會自動套用。</li>
+      <li>加油量僅允許填入 0 以上數值，排放係數與 GWP 由系統計算不可自行修改。</li>
+      <li>活動附件可拖拉或點擊上傳，將隨列出可供下載的檔案名稱。</li>
+    </ul>
+  </section>
+
+  <div id="addActivityModal" class="modal" aria-hidden="true">
+    <div class="modal__overlay" data-close-modal></div>
+    <div class="modal__dialog" role="dialog" aria-modal="true" aria-labelledby="addActivityModalTitle">
+      <header class="modal__header">
+        <h2 id="addActivityModalTitle">新增活動資料</h2>
+        <button class="modal__close" type="button" data-close-modal aria-label="關閉新增視窗"></button>
+      </header>
+      <form id="addActivityForm" class="modal__body">
+        <div class="form-grid">
+          <div class="form-field">
+            <span class="form-label">站點名稱</span>
+            <p id="modalStationName" class="form-static">—</p>
+          </div>
+          <label class="form-field">
+            <span class="form-label">據點名稱</span>
+            <select id="modalDepotSelect" name="depot" required></select>
+          </label>
+          <label class="form-field">
+            <span class="form-label">車號</span>
+            <select id="modalVehicleSelect" name="vehicle" required></select>
+          </label>
+          <label class="form-field">
+            <span class="form-label">油料種類</span>
+            <select id="modalFuelSelect" name="fuelType" required></select>
+          </label>
+          <label class="form-field">
+            <span class="form-label">月份</span>
+            <select id="modalMonthSelect" name="month" required></select>
+          </label>
+          <label class="form-field">
+            <span class="form-label">加油量 (L)</span>
+            <input id="modalVolumeInput" name="volume" type="number" min="0" step="0.01" required placeholder="請輸入加油量" />
+          </label>
+          <label class="form-field form-field--span">
+            <span class="form-label">活動數據來源</span>
+            <input id="modalDataSource" name="dataSource" type="text" required placeholder="例如：加油收據、油耗系統" />
+          </label>
+          <label class="form-field form-field--span">
+            <span class="form-label">備註 <span class="form-label__optional">(選填)</span></span>
+            <textarea id="modalNotes" name="notes" rows="2" placeholder="可輸入補充說明"></textarea>
+          </label>
+          <div class="form-field form-field--span">
+            <span class="form-label">活動附件 <span class="form-label__optional">(選填)</span></span>
+            <div id="mobileAttachmentDropZone" class="drop-zone" role="button" tabindex="0">
+              <p>拖拉檔案到此處，或 <button type="button" class="link-button" id="triggerAttachmentInput">點此上傳</button></p>
+              <input id="mobileAttachmentInput" type="file" hidden multiple />
+            </div>
+            <ul id="mobileAttachmentList" class="attachment-list"></ul>
+          </div>
+        </div>
+        <p id="addModalError" class="form-error" role="alert" hidden></p>
+        <footer class="modal__footer">
+          <button class="secondary-button" type="button" data-close-modal>取消</button>
+          <button class="primary-button" type="submit">儲存</button>
+        </footer>
+      </form>
+    </div>
+  </div>
+
+  <div id="returnReasonModal" class="modal" aria-hidden="true">
+    <div class="modal__overlay" data-close-modal></div>
+    <div class="modal__dialog" role="dialog" aria-modal="true" aria-labelledby="returnReasonTitle">
+      <header class="modal__header">
+        <h2 id="returnReasonTitle">退回原因</h2>
+        <button class="modal__close" type="button" data-close-modal aria-label="關閉退回視窗"></button>
+      </header>
+      <form id="returnReasonForm" class="modal__body">
+        <label class="form-field form-field--span">
+          <span class="form-label">請輸入退回原因</span>
+          <textarea id="returnReasonInput" name="reason" rows="3" required placeholder="請描述退回原因"></textarea>
+        </label>
+        <p id="returnModalError" class="form-error" role="alert" hidden></p>
+        <footer class="modal__footer">
+          <button class="secondary-button" type="button" data-close-modal>取消</button>
+          <button class="primary-button" type="submit">確認退回</button>
+        </footer>
+      </form>
+    </div>
+  </div>
 </section>
+
+<style>
+.page-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1.75rem;
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1.5rem;
+}
+
+.page-header__text h1 {
+  margin: 0 0 0.5rem;
+  font-size: 1.8rem;
+  color: #1f2937;
+}
+
+.page-header__text p {
+  margin: 0;
+  color: #4b5563;
+  line-height: 1.6;
+}
+
+.primary-action {
+  align-self: center;
+  border: none;
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  color: #ffffff;
+  padding: 0.75rem 1.5rem;
+  border-radius: 999px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.primary-action:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 18px rgba(37, 99, 235, 0.25);
+}
+
+.info-card {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 1.5rem 1.75rem;
+  box-shadow: 0 10px 25px rgba(15, 23, 42, 0.08);
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.info-card__row {
+  display: grid;
+  gap: 1.5rem;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  align-items: center;
+}
+
+.info-field dt {
+  margin: 0 0 0.35rem;
+  color: #6b7280;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.info-field dd {
+  margin: 0;
+  font-size: 1.1rem;
+  color: #111827;
+  font-weight: 600;
+}
+
+.info-field--actions {
+  justify-self: end;
+}
+
+.button-group {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  border-radius: 999px;
+  padding: 0.35rem 0.9rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.status-badge::before {
+  content: '';
+  width: 0.55rem;
+  height: 0.55rem;
+  border-radius: 999px;
+  background-color: currentColor;
+}
+
+.status-badge--draft {
+  background: rgba(59, 130, 246, 0.12);
+  color: #2563eb;
+}
+
+.status-badge--submitted {
+  background: rgba(249, 115, 22, 0.12);
+  color: #ea580c;
+}
+
+.status-badge--l1 {
+  background: rgba(34, 197, 94, 0.12);
+  color: #15803d;
+}
+
+.status-badge--l2 {
+  background: rgba(30, 64, 175, 0.12);
+  color: #1d4ed8;
+}
+
+.info-card__message {
+  margin: 0;
+  color: #374151;
+}
+
+.table-card {
+  background: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.08);
+  padding: 1.5rem 1.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.table-card__header h2 {
+  margin: 0 0 0.35rem;
+  color: #1f2937;
+}
+
+.table-card__header p {
+  margin: 0;
+  color: #6b7280;
+}
+
+.table-scroll {
+  overflow: auto;
+}
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.92rem;
+  min-width: 1200px;
+}
+
+.data-table thead th {
+  background: #f9fafb;
+  text-align: left;
+  padding: 0.75rem 0.9rem;
+  border-bottom: 1px solid #e5e7eb;
+  color: #4b5563;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.data-table tbody td {
+  padding: 0.65rem 0.9rem;
+  border-bottom: 1px solid #f1f5f9;
+  vertical-align: top;
+}
+
+.data-table tbody tr:nth-child(even) {
+  background: #f9fafb;
+}
+
+.data-table tbody td.editable {
+  background: #fef9c3;
+}
+
+.table-card__empty {
+  margin: 0;
+  color: #6b7280;
+}
+
+.table-action-column {
+  width: 80px;
+}
+
+.table-row-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.action-link {
+  border: none;
+  background: none;
+  color: #2563eb;
+  text-decoration: underline;
+  cursor: pointer;
+  padding: 0;
+  font-size: 0.9rem;
+}
+
+.attachment-list,
+.record-attachments {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.record-attachments li {
+  background: #eef2ff;
+  padding: 0.25rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.85rem;
+}
+
+.record-attachments a {
+  color: #3730a3;
+  text-decoration: none;
+}
+
+.record-attachments a:hover,
+.record-attachments a:focus {
+  text-decoration: underline;
+}
+
+.page-hint {
+  background: #ecfdf5;
+  border-radius: 16px;
+  padding: 1.25rem 1.5rem;
+  color: #047857;
+}
+
+.page-hint h2 {
+  margin: 0 0 0.5rem;
+}
+
+.page-hint ul {
+  margin: 0;
+  padding-left: 1.25rem;
+  line-height: 1.7;
+}
+
+.modal {
+  position: fixed;
+  inset: 0;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 50;
+}
+
+.modal.is-open {
+  display: flex;
+}
+
+.modal__overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(17, 24, 39, 0.45);
+}
+
+.modal__dialog {
+  position: relative;
+  background: #ffffff;
+  border-radius: 16px;
+  width: min(760px, 94vw);
+  max-height: 92vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.modal__header {
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid #e5e7eb;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.modal__header h2 {
+  margin: 0;
+  font-size: 1.35rem;
+}
+
+.modal__close {
+  width: 2rem;
+  height: 2rem;
+  border-radius: 999px;
+  border: none;
+  background: #f3f4f6;
+  cursor: pointer;
+  position: relative;
+}
+
+.modal__close::before,
+.modal__close::after {
+  content: '';
+  position: absolute;
+  inset: 50%;
+  width: 1rem;
+  height: 2px;
+  background: #4b5563;
+}
+
+.modal__close::before {
+  transform: translate(-50%, -50%) rotate(45deg);
+}
+
+.modal__close::after {
+  transform: translate(-50%, -50%) rotate(-45deg);
+}
+
+.modal__body {
+  padding: 1.25rem 1.5rem 0;
+  overflow: auto;
+}
+
+.modal__footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  padding: 0.75rem 1.5rem 1.25rem;
+  border-top: 1px solid #e5e7eb;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem 1.5rem;
+}
+
+.form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.form-field--span {
+  grid-column: 1 / -1;
+}
+
+.form-label {
+  font-size: 0.9rem;
+  color: #4b5563;
+  font-weight: 600;
+}
+
+.form-label__optional {
+  color: #9ca3af;
+  font-weight: 500;
+}
+
+.form-static {
+  margin: 0;
+  font-weight: 600;
+  color: #111827;
+}
+
+.form-grid input,
+.form-grid select,
+.form-grid textarea {
+  border: 1px solid #d1d5db;
+  border-radius: 10px;
+  padding: 0.65rem 0.75rem;
+  font-size: 0.95rem;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.form-grid input:focus,
+.form-grid select:focus,
+.form-grid textarea:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+  outline: none;
+}
+
+.form-error {
+  margin: 0.5rem 0 0;
+  color: #dc2626;
+  font-weight: 600;
+}
+
+.primary-button,
+.secondary-button {
+  border-radius: 8px;
+  padding: 0.65rem 1.25rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.primary-button {
+  border: none;
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  color: #ffffff;
+}
+
+.secondary-button {
+  border: 1px solid #d1d5db;
+  background: #ffffff;
+  color: #1f2937;
+}
+
+.drop-zone {
+  border: 1px dashed #93c5fd;
+  border-radius: 10px;
+  padding: 1rem;
+  text-align: center;
+  background: #f8fafc;
+  color: #1d4ed8;
+}
+
+.drop-zone.is-dragover {
+  background: #dbeafe;
+}
+
+.link-button {
+  border: none;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.attachment-list {
+  margin-top: 0.75rem;
+}
+
+.attachment-list li {
+  background: #e0e7ff;
+  color: #4338ca;
+  padding: 0.3rem 0.75rem;
+  border-radius: 999px;
+  font-size: 0.85rem;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+@media (max-width: 960px) {
+  .info-card__row {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .info-field--actions {
+    justify-self: start;
+  }
+
+  .page-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+@media (max-width: 640px) {
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .data-table {
+    min-width: 960px;
+  }
+}
+</style>

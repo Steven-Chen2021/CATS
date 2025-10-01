@@ -1,0 +1,7 @@
+station,depot,vehicle,fuelType,month,volume,dataSource,attachments,notes
+北部營運總部,台北車隊營運中心,北營-001,柴油,1,825.5,油耗管理系統,1月油耗紀錄.txt|attachments/mobile-fuel-log-202401.txt,長途配送補油
+北部營運總部,台北車隊營運中心,北營-105,95 無鉛汽油,2,245.8,加油卡結帳明細,2月加油收據.txt|attachments/mobile-fuel-log-202402.txt,定期保養前測試
+北部營運總部,新莊物流據點,新莊-301,柴油,2,612.3,派車紀錄簿,,
+北部營運總部,新莊物流據點,新莊-318,92 無鉛汽油,3,198.4,加油站發票,行車日誌擷取.pdf|attachments/mobile-fuel-log-202403.txt,
+北部營運總部,桃園配送據點,桃配-210,柴油,3,705.9,GPS 油耗資料,,北區支援南區配送
+北部營運總部,桃園配送據點,桃配-226,98 無鉛汽油,4,156.2,行車紀錄器匯出,,
