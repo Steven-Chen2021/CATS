@@ -169,13 +169,25 @@ function renderRows(
     siteLink.dataset.site = item.site;
     siteLink.addEventListener('click', () => simulateDownload(messageContainer, `${item.site} 清冊簡表`));
 
-    const downloadButton = document.createElement('button');
-    downloadButton.type = 'button';
-    downloadButton.className = 'secondary-button download-button';
-    downloadButton.textContent = '下載';
-    downloadButton.addEventListener('click', () =>
-      simulateDownload(messageContainer, `${item.site} - ${item.year} 匯出資料`)
+    const downloadSimpleButton = document.createElement('button');
+    downloadSimpleButton.type = 'button';
+    downloadSimpleButton.className = 'secondary-button download-button';
+    downloadSimpleButton.textContent = '下載簡表';
+    downloadSimpleButton.addEventListener('click', () =>
+      simulateDownload(messageContainer, `${item.site} - ${item.year} 清冊簡表`)
     );
+
+    const downloadAllButton = document.createElement('button');
+    downloadAllButton.type = 'button';
+    downloadAllButton.className = 'secondary-button download-button';
+    downloadAllButton.textContent = '下載簡表與所有活動';
+    downloadAllButton.addEventListener('click', () =>
+      simulateDownload(messageContainer, `${item.site} - ${item.year} 清冊簡表與所有活動`)
+    );
+
+    const downloadButtons = document.createElement('div');
+    downloadButtons.className = 'download-button-group';
+    downloadButtons.append(downloadSimpleButton, downloadAllButton);
 
     const cells: (string | number | HTMLElement)[] = [
       item.year,
@@ -184,7 +196,7 @@ function renderRows(
       siteLink,
       item.emissionSources.join('、'),
       formatStatus(item.status),
-      downloadButton,
+      downloadButtons,
     ];
 
     cells.forEach((value) => {
