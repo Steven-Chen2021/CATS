@@ -463,6 +463,9 @@ import('./page-inits/fugitive-emissions')
       (pageInitializers['pages/fugitive-emissions.html'] = m.initFugitiveEmissions)
   )
   .catch(() => {});
+import('./page-inits/septic-tank')
+  .then((m) => (pageInitializers['pages/septic-tank.html'] = m.initSepticTank))
+  .catch(() => {});
 
 const activeHref = ref('');
 const activeContent = ref('');

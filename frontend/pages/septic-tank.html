@@ -1,4 +1,634 @@
-<section class="page-content">
-  <h1>化糞池</h1>
-  <p>管理化糞池操作與抽運紀錄，掌握相關排放資訊。</p>
+<section class="page-content septic-tank-page" aria-labelledby="septicTankHeading">
+  <header class="page-header">
+    <div class="page-header__text">
+      <h1 id="septicTankHeading">化糞池排放源活動蒐集</h1>
+      <p>
+        蒐集化糞池運作所需的人力活動資訊，系統會自動帶出排放係數並計算 CH₄
+        排放量，協助完成盤查及審核流程。
+      </p>
+    </div>
+    <button id="openSepticAddModal" class="primary-action" type="button">新增活動資料</button>
+  </header>
+
+  <section class="info-card" aria-labelledby="septicInventoryHeading">
+    <div class="info-card__row">
+      <div class="info-field">
+        <dt id="septicInventoryHeading">盤查年份</dt>
+        <dd id="septicInventoryYear">—</dd>
+      </div>
+      <div class="info-field">
+        <dt>資料審核狀態</dt>
+        <dd>
+          <span id="septicAuditStatus" class="status-badge status-badge--draft" aria-live="polite">草稿</span>
+        </dd>
+      </div>
+      <div class="info-field info-field--actions">
+        <dt class="sr-only">審核操作</dt>
+        <dd>
+          <div id="septicAuditActions" class="button-group" role="group" aria-label="審核操作"></div>
+        </dd>
+      </div>
+    </div>
+    <p id="septicAuditMessage" class="info-card__message" role="status" aria-live="polite">
+      目前狀態為草稿，可繼續編輯或新增活動資料。
+    </p>
+  </section>
+
+  <section class="table-card" aria-labelledby="septicActivityHeading">
+    <div class="table-card__header">
+      <h2 id="septicActivityHeading">活動資料清單</h2>
+      <p>下表淡黃色欄位可編輯，其餘欄位由系統自動帶入或計算。</p>
+    </div>
+    <div class="table-scroll" role="region" aria-labelledby="septicActivityHeading">
+      <table class="data-table septic-activity-table">
+        <thead>
+          <tr>
+            <th scope="col">站點名稱</th>
+            <th scope="col">據點名稱</th>
+            <th scope="col">月份</th>
+            <th scope="col">2024年員工數</th>
+            <th scope="col">2024年工作天數</th>
+            <th scope="col">休假天數 (總請假小時/8小時)</th>
+            <th scope="col">2024實際上班人天數</th>
+            <th scope="col">CH₄排放係數 (kg CH₄/人天)</th>
+            <th scope="col">GWP</th>
+            <th scope="col">排放量 (kg CO₂e)</th>
+            <th scope="col">活動數據來源</th>
+            <th scope="col">係數來源</th>
+            <th scope="col">活動附件</th>
+            <th scope="col">備註</th>
+          </tr>
+        </thead>
+        <tbody id="septicActivityTableBody"></tbody>
+      </table>
+    </div>
+    <p id="septicEmptyMessage" class="table-card__empty" hidden>目前尚無活動資料，請點擊「新增活動資料」。</p>
+  </section>
+
+  <section class="page-hint">
+    <h2>填寫提醒</h2>
+    <ul>
+      <li>站點名稱由系統依登入帳號帶出，使用者無須輸入。</li>
+      <li>據點名稱會依站點顯示可選清單，若僅有一個據點會自動套用。</li>
+      <li>員工數、工作天數與休假天數僅允許填入 0 以上數值。</li>
+      <li>實際上班人天數與排放量由系統依公式計算，不可自行修改。</li>
+      <li>活動附件可拖拉或點擊上傳，檔案會顯示於列表並可下載。</li>
+    </ul>
+  </section>
+
+  <div id="septicAddModal" class="modal" aria-hidden="true">
+    <div class="modal__overlay" data-close-modal></div>
+    <div class="modal__dialog" role="dialog" aria-modal="true" aria-labelledby="septicAddModalTitle">
+      <header class="modal__header">
+        <h2 id="septicAddModalTitle">新增活動資料</h2>
+        <button class="modal__close" type="button" data-close-modal aria-label="關閉新增視窗"></button>
+      </header>
+      <form id="septicAddForm" class="modal__body">
+        <div class="form-grid">
+          <div class="form-field">
+            <span class="form-label">站點名稱</span>
+            <p id="septicModalStationName" class="form-static">—</p>
+          </div>
+          <label class="form-field">
+            <span class="form-label">據點名稱</span>
+            <select id="septicModalDepotSelect" name="depot" required></select>
+          </label>
+          <label class="form-field">
+            <span class="form-label">月份</span>
+            <select id="septicModalMonthSelect" name="month" required></select>
+          </label>
+          <label class="form-field">
+            <span class="form-label">2024年員工數</span>
+            <input
+              id="septicModalEmployees"
+              name="employees"
+              type="number"
+              min="0"
+              step="1"
+              required
+              placeholder="請輸入員工數"
+            />
+          </label>
+          <label class="form-field">
+            <span class="form-label">2024年工作天數</span>
+            <input
+              id="septicModalWorkdays"
+              name="workdays"
+              type="number"
+              min="0"
+              step="1"
+              required
+              placeholder="請輸入工作天數"
+            />
+          </label>
+          <label class="form-field">
+            <span class="form-label">休假天數 (總請假小時/8小時)</span>
+            <input
+              id="septicModalLeaveDays"
+              name="leaveDays"
+              type="number"
+              min="0"
+              step="0.1"
+              required
+              placeholder="請輸入休假天數"
+            />
+          </label>
+          <label class="form-field form-field--span">
+            <span class="form-label">活動數據來源</span>
+            <input
+              id="septicModalDataSource"
+              name="dataSource"
+              type="text"
+              required
+              placeholder="例如：人事系統、班表紀錄"
+            />
+          </label>
+          <label class="form-field form-field--span">
+            <span class="form-label">備註 <span class="form-label__optional">(選填)</span></span>
+            <textarea id="septicModalNotes" name="notes" rows="2" placeholder="可輸入補充說明"></textarea>
+          </label>
+          <div class="form-field form-field--span">
+            <span class="form-label">活動附件 <span class="form-label__optional">(選填)</span></span>
+            <div id="septicDropZone" class="drop-zone" role="button" tabindex="0">
+              <p>拖拉檔案到此處，或 <button type="button" class="link-button" id="septicAttachmentBrowse">點此上傳</button></p>
+              <input id="septicAttachmentInput" type="file" hidden multiple />
+            </div>
+            <ul id="septicAttachmentList" class="attachment-list"></ul>
+          </div>
+        </div>
+        <p id="septicModalError" class="form-error" role="alert" hidden></p>
+        <footer class="modal__footer">
+          <button class="secondary-button" type="button" data-close-modal>取消</button>
+          <button class="primary-button" type="submit">儲存</button>
+        </footer>
+      </form>
+    </div>
+  </div>
+
+  <div id="septicReturnModal" class="modal" aria-hidden="true">
+    <div class="modal__overlay" data-close-modal></div>
+    <div class="modal__dialog" role="dialog" aria-modal="true" aria-labelledby="septicReturnTitle">
+      <header class="modal__header">
+        <h2 id="septicReturnTitle">退回原因</h2>
+        <button class="modal__close" type="button" data-close-modal aria-label="關閉退回視窗"></button>
+      </header>
+      <form id="septicReturnForm" class="modal__body">
+        <label class="form-field form-field--span">
+          <span class="form-label">請輸入退回原因</span>
+          <textarea id="septicReturnReason" name="reason" rows="3" required placeholder="請描述退回原因"></textarea>
+        </label>
+        <p id="septicReturnError" class="form-error" role="alert" hidden></p>
+        <footer class="modal__footer">
+          <button class="secondary-button" type="button" data-close-modal>取消</button>
+          <button class="primary-button" type="submit">確認退回</button>
+        </footer>
+      </form>
+    </div>
+  </div>
 </section>
+
+<style>
+.page-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1.75rem;
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1.5rem;
+}
+
+.page-header__text h1 {
+  margin: 0 0 0.5rem;
+  font-size: 1.8rem;
+  color: #1f2937;
+}
+
+.page-header__text p {
+  margin: 0;
+  color: #4b5563;
+  line-height: 1.6;
+}
+
+.primary-action {
+  align-self: center;
+  border: none;
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  color: #ffffff;
+  padding: 0.75rem 1.5rem;
+  border-radius: 999px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 10px 18px rgba(37, 99, 235, 0.2);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.primary-action:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 14px 22px rgba(29, 78, 216, 0.25);
+}
+
+.primary-action:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+  box-shadow: none;
+}
+
+.info-card {
+  background: #ffffff;
+  border-radius: 1rem;
+  padding: 1.5rem;
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.info-card__row {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1.5rem;
+}
+
+.info-field dt {
+  margin: 0 0 0.25rem;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.info-field dd {
+  margin: 0;
+  color: #111827;
+  font-size: 1rem;
+}
+
+.info-field--actions {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+}
+
+.button-group {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.info-card__message {
+  margin: 0;
+  color: #4b5563;
+  line-height: 1.5;
+}
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.35rem 0.75rem;
+  border-radius: 999px;
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.status-badge::before {
+  content: '';
+  display: inline-block;
+  width: 0.6rem;
+  height: 0.6rem;
+  border-radius: 999px;
+  background: currentColor;
+}
+
+.status-badge--draft {
+  color: #2563eb;
+  background: rgba(37, 99, 235, 0.12);
+}
+
+.status-badge--submitted {
+  color: #d97706;
+  background: rgba(217, 119, 6, 0.12);
+}
+
+.status-badge--l1 {
+  color: #059669;
+  background: rgba(5, 150, 105, 0.12);
+}
+
+.status-badge--l2 {
+  color: #7c3aed;
+  background: rgba(124, 58, 237, 0.12);
+}
+
+.table-card {
+  background: #ffffff;
+  border-radius: 1rem;
+  padding: 1.5rem;
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.table-card__header h2 {
+  margin: 0 0 0.5rem;
+  color: #1f2937;
+}
+
+.table-card__header p {
+  margin: 0;
+  color: #6b7280;
+}
+
+.table-scroll {
+  overflow-x: auto;
+}
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 960px;
+}
+
+.data-table th,
+.data-table td {
+  padding: 0.75rem 1rem;
+  text-align: left;
+  border-bottom: 1px solid #e5e7eb;
+  vertical-align: top;
+}
+
+.data-table thead th {
+  background: #f3f4f6;
+  font-weight: 600;
+  color: #1f2937;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+.data-table tbody tr:nth-child(even) {
+  background: rgba(249, 250, 251, 0.6);
+}
+
+.data-table td.editable {
+  background: rgba(254, 243, 199, 0.4);
+}
+
+.table-card__empty {
+  margin: 0;
+  color: #9ca3af;
+  text-align: center;
+}
+
+.page-hint {
+  background: #f9fafb;
+  border-radius: 1rem;
+  padding: 1.5rem;
+  border: 1px dashed #d1d5db;
+}
+
+.page-hint h2 {
+  margin: 0 0 0.75rem;
+  color: #1f2937;
+}
+
+.page-hint ul {
+  margin: 0;
+  padding-left: 1.25rem;
+  color: #4b5563;
+  display: grid;
+  gap: 0.5rem;
+}
+
+.modal {
+  position: fixed;
+  inset: 0;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  z-index: 1000;
+}
+
+.modal.is-open {
+  display: flex;
+}
+
+.modal__overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.45);
+}
+
+.modal__dialog {
+  position: relative;
+  background: #ffffff;
+  border-radius: 1rem;
+  width: min(720px, 100%);
+  max-height: 90vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.modal__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.modal__header h2 {
+  margin: 0;
+  font-size: 1.3rem;
+  color: #1f2937;
+}
+
+.modal__close {
+  border: none;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 999px;
+  background: #f3f4f6;
+  mask: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="black" d="M18.3 5.71L12 12l6.3 6.29-1.41 1.42L10.59 13.4 4.3 19.71 2.89 18.3 9.18 12 2.89 5.71 4.3 4.3 10.59 10.6l6.29-6.3z"/></svg>') center / 60% no-repeat;
+  cursor: pointer;
+}
+
+.modal__body {
+  padding: 1.5rem;
+  overflow-y: auto;
+}
+
+.modal__footer {
+  padding: 1.25rem 1.5rem;
+  border-top: 1px solid #e5e7eb;
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem 1.25rem;
+}
+
+.form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.form-field--span {
+  grid-column: span 2;
+}
+
+.form-label {
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.form-label__optional {
+  font-weight: 500;
+  color: #9ca3af;
+}
+
+.form-static {
+  margin: 0;
+  padding: 0.6rem 0.75rem;
+  background: #f9fafb;
+  border-radius: 0.5rem;
+  color: #4b5563;
+}
+
+.form-field input,
+.form-field select,
+.form-field textarea {
+  border: 1px solid #d1d5db;
+  border-radius: 0.5rem;
+  padding: 0.6rem 0.75rem;
+  font-size: 1rem;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.form-field input:focus,
+.form-field select:focus,
+.form-field textarea:focus {
+  outline: none;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
+}
+
+.drop-zone {
+  border: 2px dashed #93c5fd;
+  border-radius: 0.75rem;
+  padding: 1.25rem;
+  text-align: center;
+  color: #2563eb;
+  background: rgba(219, 234, 254, 0.25);
+  cursor: pointer;
+}
+
+.drop-zone.is-dragover {
+  border-color: #1d4ed8;
+  background: rgba(191, 219, 254, 0.4);
+}
+
+.drop-zone p {
+  margin: 0;
+  line-height: 1.5;
+}
+
+.link-button {
+  border: none;
+  padding: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.attachment-list {
+  list-style: none;
+  margin: 0.75rem 0 0;
+  padding: 0;
+  display: grid;
+  gap: 0.5rem;
+  text-align: left;
+}
+
+.attachment-list li a {
+  color: #2563eb;
+  text-decoration: none;
+}
+
+.attachment-list li a:hover {
+  text-decoration: underline;
+}
+
+.form-error {
+  margin: 0.5rem 0 0;
+  color: #dc2626;
+}
+
+.primary-button {
+  border: none;
+  border-radius: 0.75rem;
+  padding: 0.6rem 1.4rem;
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  color: #ffffff;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.secondary-button {
+  border: 1px solid #d1d5db;
+  border-radius: 0.75rem;
+  padding: 0.6rem 1.4rem;
+  background: #ffffff;
+  color: #1f2937;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.record-attachments {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.35rem;
+}
+
+.record-attachments a {
+  color: #2563eb;
+  text-decoration: none;
+}
+
+.record-attachments a:hover {
+  text-decoration: underline;
+}
+
+@media (max-width: 960px) {
+  .page-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .info-card__row {
+    grid-template-columns: 1fr;
+  }
+
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .form-field--span {
+    grid-column: auto;
+  }
+}
+</style>

@@ -1,0 +1,7 @@
+station,depot,month,employees,workdays,leaveDays,dataSource,notes,attachments
+北部營運總部,台北營運中心,1,8,22,6,人事系統匯出,一月輪班調整完成,septic-worklog-202401.csv|septic-worklog-202401.csv
+北部營運總部,台北營運中心,2,8,20,4,人事系統匯出,春節期間採輪班,
+北部營運總部,新莊物流據點,3,6,22,3,值勤排班表,增派外包支援,
+北部營運總部,新莊物流據點,4,6,21,2,值勤排班表,,
+北部營運總部,桃園配送中心,5,7,23,5,人事系統匯出,增加例行保養,
+北部營運總部,桃園配送中心,6,7,22,4,人事系統匯出,支援北區活動,septic-inspection-202406.pdf|septic-inspection-202406.pdf

@@ -381,7 +381,6 @@ export function initMobileSources() {
       const emission = calculateEmission(record.volume, factor);
       const row = document.createElement('tr');
 
-      row.appendChild(createCell('—'));
       row.appendChild(createCell(record.station));
       row.appendChild(createCell(record.depot, true));
       row.appendChild(createCell(record.vehicle, true));
