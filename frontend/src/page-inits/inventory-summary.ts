@@ -11,6 +11,10 @@ type InventorySummaryRecord = {
   status: AuditStatus;
 };
 
+type EmissionSourceLink = {
+  href: string;
+};
+
 type StatusOption = { value: string; label: string };
 
 type Filters = {
@@ -38,6 +42,30 @@ const STATUS_OPTIONS: StatusOption[] = [
   { value: 'L1Approved', label: 'L1Approved (75%)' },
   { value: 'L2Approved', label: 'L2Approved (100%)' },
 ];
+
+const EMISSION_SOURCE_LINKS: Record<string, EmissionSourceLink> = {
+  固定燃燒排放: { href: 'pages/stationary-combustion.html' },
+  輸入電力的間接排放: { href: 'pages/indirect-electricity.html' },
+  逸散性排放: { href: 'pages/fugitive-emissions.html' },
+  '物流運輸排放 (陸運)': { href: 'pages/logistics-transport-land.html' },
+  '物流運輸排放 (海運)': { href: 'pages/logistics-transport-sea.html' },
+  '物流運輸排放 (空運)': { href: 'pages/logistics-transport-air.html' },
+  物流貨物運輸: { href: 'pages/logistics-goods-transport.html' },
+  上游運輸物流經常耗材: { href: 'pages/upstream-logistics-consumables.html' },
+  上游運輸辦公耗材: { href: 'pages/upstream-office-consumables.html' },
+  商務差旅: { href: 'pages/business-travel.html' },
+  業務差旅: { href: 'pages/business-travel.html' },
+  自有車隊燃料使用: { href: 'pages/mobile-sources.html' },
+  員工通勤: { href: 'pages/mobile-sources.html' },
+  製程逸散排放: { href: 'pages/fugitive-emissions.html' },
+  購買冷媒: { href: 'pages/fugitive-emissions.html' },
+  產品使用排放: { href: 'pages/purchased-goods-services-forklift.html' },
+  租賃資產能源使用: { href: 'pages/fuel-energy-related.html' },
+  輸入蒸氣的間接排放: { href: 'pages/fuel-energy-related.html' },
+  外購蒸氣: { href: 'pages/fuel-energy-related.html' },
+};
+
+const NAVIGATION_EVENT_NAME = 'cats:navigate';
 
 function parseRecord(row: CsvRow): InventorySummaryRecord | null {
   const yearText = row.year?.trim();
@@ -119,6 +147,39 @@ function formatStatus(status: AuditStatus) {
   return typeof percentage === 'number' ? `${status} (${percentage}%)` : status;
 }
 
+function navigateToEmissionSource(href: string, site: string, sourceType: string) {
+  const detail = { href, site, sourceType };
+  window.dispatchEvent(new CustomEvent(NAVIGATION_EVENT_NAME, { detail }));
+}
+
+function createEmissionSourceCell(site: string, sources: string[]): HTMLElement {
+  const container = document.createElement('span');
+  container.className = 'emission-source-links';
+
+  sources.forEach((source, index) => {
+    if (index > 0) {
+      container.append(document.createTextNode('、'));
+    }
+
+    const config = EMISSION_SOURCE_LINKS[source];
+
+    if (!config) {
+      container.append(document.createTextNode(source));
+      return;
+    }
+
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'link-button';
+    button.textContent = source;
+    button.addEventListener('click', () => navigateToEmissionSource(config.href, site, source));
+
+    container.append(button);
+  });
+
+  return container;
+}
+
 function readFilters(form: HTMLFormElement): Filters {
   const formData = new FormData(form);
   return {
@@ -162,13 +223,6 @@ function renderRows(
   data.forEach((item) => {
     const row = document.createElement('tr');
 
-    const siteLink = document.createElement('button');
-    siteLink.type = 'button';
-    siteLink.className = 'link-button';
-    siteLink.textContent = item.site;
-    siteLink.dataset.site = item.site;
-    siteLink.addEventListener('click', () => simulateDownload(messageContainer, `${item.site} 清冊簡表`));
-
     const downloadSimpleButton = document.createElement('button');
     downloadSimpleButton.type = 'button';
     downloadSimpleButton.className = 'secondary-button download-button';
@@ -193,8 +247,8 @@ function renderRows(
       item.year,
       item.country,
       item.region,
-      siteLink,
-      item.emissionSources.join('、'),
+      item.site,
+      createEmissionSourceCell(item.site, item.emissionSources),
       formatStatus(item.status),
       downloadButtons,
     ];
