@@ -6,6 +6,11 @@ type AuditStatus = 'Draft' | 'Submitted' | 'L1Approved' | 'L2Approved';
 
 type FuelType = '92 無鉛汽油' | '95 無鉛汽油' | '98 無鉛汽油' | '柴油';
 
+type Attachment = {
+  name: string;
+  url: string;
+};
+
 type CombustionRecord = {
   depot: string;
   activityId: string;
@@ -15,7 +20,7 @@ type CombustionRecord = {
   unit: '公升' | '加侖';
   dataSource: string;
   notes?: string;
-  attachments: string[];
+  attachments: Attachment[];
 };
 
 type ActivityDefinition = {
@@ -68,6 +73,7 @@ const ACTIVITIES: ActivityDefinition[] = [
 
 const FACTOR_SOURCE = '環保署固定燃燒排放係數表 (2024 年度)';
 const COMBUSTION_DATA_PATH = `${import.meta.env.BASE_URL}data/stationary-combustion.csv`;
+const ATTACHMENT_BASE_PATH = `${import.meta.env.BASE_URL}attachments/`;
 
 const FACTOR_TABLE: Record<FuelType, FactorEntry> = {
   '92 無鉛汽油': {
@@ -194,7 +200,7 @@ export function initStationaryCombustion() {
   inventoryYearEl.textContent = `${INVENTORY_YEAR} 年`;
 
   let currentStatus: AuditStatus = 'Draft';
-  let currentAttachments: string[] = [];
+  let currentAttachments: Attachment[] = [];
   let presetContext: { depot?: string; activityId?: string; fuelType?: FuelType } | null = null;
   let statusResetTimeout: number | undefined;
 
@@ -224,7 +230,7 @@ export function initStationaryCombustion() {
   browseButton.addEventListener('click', () => attachmentInput.click());
 
   attachmentInput.addEventListener('change', () => {
-    currentAttachments = collectAttachmentNames(attachmentInput.files);
+    currentAttachments = collectAttachments(attachmentInput.files);
     renderAttachmentList(attachmentList, currentAttachments);
   });
 
@@ -240,8 +246,8 @@ export function initStationaryCombustion() {
   dropZone.addEventListener('drop', (event) => {
     event.preventDefault();
     dropZone.classList.remove('is-dragover');
-    const files = event.dataTransfer?.files;
-    currentAttachments = collectAttachmentNames(files || null);
+    const files = event.dataTransfer?.files || null;
+    currentAttachments = collectAttachments(files);
     renderAttachmentList(attachmentList, currentAttachments);
   });
 
@@ -292,6 +298,7 @@ export function initStationaryCombustion() {
     renderTable();
     addForm.reset();
     currentAttachments = [];
+    attachmentInput.value = '';
     renderAttachmentList(attachmentList, currentAttachments);
     closeModal(addModal);
     presetContext = null;
@@ -357,6 +364,7 @@ export function initStationaryCombustion() {
     notesInput.value = '';
     modalError.textContent = '';
     currentAttachments = [];
+    attachmentInput.value = '';
     renderAttachmentList(attachmentList, currentAttachments);
 
     openModal(addModal);
@@ -435,6 +443,7 @@ export function initStationaryCombustion() {
 
       row.appendChild(createCell(record.dataSource, true));
       row.appendChild(createCell(factor?.source || FACTOR_SOURCE));
+      row.appendChild(createAttachmentCell(record.attachments));
       row.appendChild(createCell(record.notes || '—', true));
 
       tableBody.appendChild(row);
@@ -476,7 +485,7 @@ export function initStationaryCombustion() {
     };
   }
 
-  function parseAttachmentList(value?: string): string[] {
+  function parseAttachmentList(value?: string): Attachment[] {
     if (!value) {
       return [];
     }
@@ -484,7 +493,9 @@ export function initStationaryCombustion() {
     return value
       .split(';')
       .map((item) => item.trim())
-      .filter((item) => item.length > 0);
+      .filter((item) => item.length > 0)
+      .map((entry) => parseAttachmentEntry(entry))
+      .filter((attachment): attachment is Attachment => Boolean(attachment));
   }
 
   function parseNumber(value?: string): number {
@@ -673,20 +684,82 @@ export function initStationaryCombustion() {
     populateFuelOptions(fuelSelect, fuels, selectedFuel && fuels.includes(selectedFuel) ? selectedFuel : undefined);
   }
 
-  function collectAttachmentNames(fileList: FileList | null) {
+  function collectAttachments(fileList: FileList | null): Attachment[] {
     if (!fileList || fileList.length === 0) {
       return [];
     }
-    return Array.from(fileList).map((file) => file.name);
+
+    return Array.from(fileList).map((file) => ({
+      name: file.name,
+      url: URL.createObjectURL(file),
+    }));
   }
 
-  function renderAttachmentList(container: HTMLElement, attachments: string[]) {
+  function renderAttachmentList(container: HTMLElement, attachments: Attachment[]) {
     container.innerHTML = '';
-    attachments.forEach((name) => {
+    attachments.forEach(({ name }) => {
       const item = document.createElement('li');
       item.textContent = name;
       container.appendChild(item);
     });
+  }
+
+  function createAttachmentCell(attachments: Attachment[]) {
+    const cell = document.createElement('td');
+
+    if (attachments.length === 0) {
+      cell.textContent = '—';
+      return cell;
+    }
+
+    const list = document.createElement('ul');
+    list.className = 'attachment-links';
+
+    attachments.forEach(({ name, url }) => {
+      const item = document.createElement('li');
+      const link = document.createElement('a');
+      link.href = url;
+      link.textContent = name;
+      link.download = name;
+      link.target = '_blank';
+      link.rel = 'noopener noreferrer';
+      item.appendChild(link);
+      list.appendChild(item);
+    });
+
+    cell.appendChild(list);
+    return cell;
+  }
+
+  function resolveAttachmentUrl(path: string) {
+    if (!path) {
+      return '';
+    }
+
+    if (/^https?:\/\//i.test(path)) {
+      return path;
+    }
+
+    try {
+      return new URL(path, `${window.location.origin}${import.meta.env.BASE_URL}`).toString();
+    } catch {
+      return path;
+    }
+  }
+
+  function parseAttachmentEntry(entry: string): Attachment | null {
+    const [rawName, rawUrl] = entry.split('|');
+    const name = rawName?.trim() ?? '';
+
+    if (!name) {
+      return null;
+    }
+
+    const url = rawUrl && rawUrl.trim().length > 0
+      ? resolveAttachmentUrl(rawUrl.trim())
+      : `${ATTACHMENT_BASE_PATH}${encodeURIComponent(name)}`;
+
+    return { name, url };
   }
 
   function getActivityDefinition(id: string) {

@@ -59,6 +59,7 @@
             <th scope="col">溫室氣體排放量 (kg CO₂e)</th>
             <th scope="col">活動數據來源</th>
             <th scope="col">係數來源</th>
+            <th scope="col">活動附件</th>
             <th scope="col">備註</th>
           </tr>
         </thead>
@@ -547,6 +548,26 @@
 
 .attachment-list li {
   padding: 0.25rem 0;
+}
+
+.attachment-links {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.attachment-links a {
+  color: #2563eb;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.attachment-links a:hover,
+.attachment-links a:focus {
+  text-decoration: underline;
 }
 
 @media (max-width: 768px) {
