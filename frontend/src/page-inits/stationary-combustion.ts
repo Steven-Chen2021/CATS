@@ -201,7 +201,6 @@ export function initStationaryCombustion() {
 
   let currentStatus: AuditStatus = 'Draft';
   let currentAttachments: Attachment[] = [];
-  let presetContext: { depot?: string; activityId?: string; fuelType?: FuelType } | null = null;
   let statusResetTimeout: number | undefined;
 
   let records: CombustionRecord[] = [];
@@ -252,7 +251,6 @@ export function initStationaryCombustion() {
   });
 
   addButton.addEventListener('click', () => {
-    presetContext = null;
     openAddModal();
   });
 
@@ -301,7 +299,6 @@ export function initStationaryCombustion() {
     attachmentInput.value = '';
     renderAttachmentList(attachmentList, currentAttachments);
     closeModal(addModal);
-    presetContext = null;
   });
 
   returnForm.addEventListener('submit', (event) => {
@@ -341,21 +338,15 @@ export function initStationaryCombustion() {
   }
 
   function openAddModal() {
-    if (presetContext?.depot) {
-      depotSelect.value = presetContext.depot;
-    } else if (DEPOT_OPTIONS.length === 1) {
+    if (DEPOT_OPTIONS.length === 1) {
       depotSelect.value = DEPOT_OPTIONS[0];
     } else {
       depotSelect.value = '';
     }
 
-    if (presetContext?.activityId) {
-      activitySelect.value = presetContext.activityId;
-    } else {
-      activitySelect.value = '';
-    }
+    activitySelect.value = '';
 
-    setFuelOptionsForActivity(activitySelect.value, presetContext?.fuelType);
+    setFuelOptionsForActivity(activitySelect.value);
 
     monthSelect.value = '';
     quantityInput.value = '';
@@ -384,23 +375,6 @@ export function initStationaryCombustion() {
       const activity = getActivityDefinition(record.activityId);
       const factor = FACTOR_TABLE[record.fuelType];
       const row = document.createElement('tr');
-
-      const actionCell = document.createElement('td');
-      actionCell.classList.add('col-actions');
-      const createButton = document.createElement('button');
-      createButton.type = 'button';
-      createButton.className = 'secondary-button';
-      createButton.textContent = '新增';
-      createButton.addEventListener('click', () => {
-        presetContext = {
-          depot: record.depot,
-          activityId: record.activityId,
-          fuelType: record.fuelType,
-        };
-        openAddModal();
-      });
-      actionCell.appendChild(createButton);
-      row.appendChild(actionCell);
 
       row.appendChild(createCell(SITE_NAME));
       row.appendChild(createCell(record.depot, true));
