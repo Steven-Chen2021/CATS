@@ -433,6 +433,13 @@ import('./page-inits/stationary-combustion')
         m.initStationaryCombustion)
   )
   .catch(() => {});
+import('./page-inits/inventory-summary')
+  .then(
+    (m) =>
+      (pageInitializers['pages/inventory-summary.html'] =
+        m.initInventorySummary)
+  )
+  .catch(() => {});
 import('./page-inits/business-travel')
   .then(
     (m) =>
