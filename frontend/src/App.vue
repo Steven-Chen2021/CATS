@@ -477,6 +477,13 @@ import('./page-inits/fugitive-emissions')
       (pageInitializers['pages/fugitive-emissions.html'] = m.initFugitiveEmissions)
   )
   .catch(() => {});
+import('./page-inits/purchased-goods-services-forklift')
+  .then(
+    (m) =>
+      (pageInitializers['pages/purchased-goods-services-forklift.html'] =
+        m.initPurchasedGoodsServicesForklift)
+  )
+  .catch(() => {});
 import('./page-inits/septic-tank')
   .then((m) => (pageInitializers['pages/septic-tank.html'] = m.initSepticTank))
   .catch(() => {});
