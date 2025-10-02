@@ -427,6 +427,13 @@ import('./page-inits/emission-source-site-association')
         m.initEmissionSourceSiteAssociation)
   )
   .catch(() => {});
+import('./page-inits/emission-source-instances')
+  .then(
+    (m) =>
+      (pageInitializers['pages/emission-source-instances.html'] =
+        m.initEmissionSourceInstances)
+  )
+  .catch(() => {});
 import('./page-inits/upstream-office-consumables')
   .then(
     (m) =>

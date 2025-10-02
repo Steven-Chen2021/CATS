@@ -1,4 +1,497 @@
-<section class="page-content">
-  <h1>排放源實例管理</h1>
-  <p>建立與維護各排放源實際設備或活動的詳細資料。</p>
+<section
+  class="page-content emission-source-instances"
+  aria-labelledby="emissionSourceInstancesTitle"
+>
+  <header class="page-header">
+    <h1 id="emissionSourceInstancesTitle">排放源實例管理</h1>
+    <p>
+      針對盤查年度與站點已挑選之排放源類型，建立對應設備或活動的實例資料，協助後續盤點與維護。
+    </p>
+  </header>
+
+  <article class="filter-card" aria-label="篩選條件">
+    <form id="instanceFilterForm" class="filter-form" novalidate>
+      <div class="filter-grid">
+        <label class="filter-field" for="filterYearSelect">
+          <span class="field-label">盤查年度</span>
+          <select id="filterYearSelect" name="year" required>
+            <option value="">請選擇盤查年度</option>
+          </select>
+        </label>
+        <label class="filter-field" for="filterCountrySelect">
+          <span class="field-label">國家</span>
+          <select id="filterCountrySelect" name="country" required>
+            <option value="">請選擇國家</option>
+          </select>
+        </label>
+        <label class="filter-field" for="filterRegionSelect">
+          <span class="field-label">區域</span>
+          <select id="filterRegionSelect" name="region" required disabled>
+            <option value="">請先選擇國家</option>
+          </select>
+        </label>
+        <label class="filter-field" for="filterSiteSelect">
+          <span class="field-label">站點</span>
+          <select id="filterSiteSelect" name="site" required disabled>
+            <option value="">請先選擇區域</option>
+          </select>
+        </label>
+        <label class="filter-field" for="filterSourceTypeSelect">
+          <span class="field-label">排放源類型</span>
+          <select id="filterSourceTypeSelect" name="sourceType" required>
+            <option value="">請選擇排放源類型</option>
+          </select>
+        </label>
+      </div>
+      <div class="filter-actions">
+        <p id="filterErrorMessage" class="filter-error" role="alert" aria-live="assertive"></p>
+        <div class="filter-buttons">
+          <button type="submit" class="primary-action">查詢</button>
+          <button
+            type="button"
+            id="openInstanceModal"
+            class="secondary-action"
+            disabled
+          >
+            新增
+          </button>
+        </div>
+      </div>
+    </form>
+  </article>
+
+  <article class="table-card" aria-labelledby="instanceTableTitle">
+    <header class="table-card__header">
+      <div>
+        <h2 id="instanceTableTitle">排放源實例列表</h2>
+        <p id="selectionSummary" class="selection-summary">
+          請先設定篩選條件並點擊「查詢」以載入排放源實例。
+        </p>
+      </div>
+    </header>
+    <div class="table-scroll" role="region" aria-labelledby="instanceTableTitle">
+      <table class="data-table" aria-describedby="selectionSummary">
+        <thead>
+          <tr>
+            <th scope="col">據點名稱</th>
+            <th scope="col">排放源類型</th>
+            <th scope="col">實例名稱</th>
+            <th scope="col">系統編號</th>
+            <th scope="col">財產編號</th>
+            <th scope="col">啟用日</th>
+            <th scope="col">備註</th>
+            <th scope="col">維護人</th>
+          </tr>
+        </thead>
+        <tbody id="instanceTableBody"></tbody>
+      </table>
+    </div>
+    <p id="instancesEmptyMessage" class="table-empty" hidden>目前尚無符合條件的排放源實例。</p>
+    <p id="instanceStatusMessage" class="table-status" role="status" aria-live="polite"></p>
+  </article>
+
+  <div id="createInstanceModal" class="modal" aria-hidden="true">
+    <div class="modal__overlay" data-close-modal></div>
+    <div
+      class="modal__dialog"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="createInstanceModalTitle"
+    >
+      <header class="modal__header">
+        <h2 id="createInstanceModalTitle">新增排放源實例</h2>
+        <button
+          class="modal__close"
+          type="button"
+          data-close-modal
+          aria-label="關閉新增視窗"
+        ></button>
+      </header>
+      <form id="createInstanceForm" class="modal__body" novalidate>
+        <div class="form-grid">
+          <label class="form-field">
+            <span class="form-label">據點名稱</span>
+            <select id="modalFacilitySelect" name="facility" required></select>
+          </label>
+          <label class="form-field">
+            <span class="form-label">排放源類型</span>
+            <select id="modalSourceTypeSelect" name="sourceType" required></select>
+          </label>
+          <label class="form-field">
+            <span class="form-label">實例名稱</span>
+            <input id="modalInstanceName" name="instanceName" type="text" required />
+          </label>
+          <label class="form-field">
+            <span class="form-label">系統編號</span>
+            <input id="modalSystemNumber" name="systemNumber" type="text" required />
+          </label>
+          <label class="form-field">
+            <span class="form-label">財產編號</span>
+            <input id="modalAssetNumber" name="assetNumber" type="text" required />
+          </label>
+          <label class="form-field">
+            <span class="form-label">啟用日</span>
+            <input id="modalActivationDate" name="activationDate" type="date" required />
+          </label>
+          <label class="form-field form-field--span">
+            <span class="form-label">備註 (選填)</span>
+            <textarea
+              id="modalNotes"
+              name="notes"
+              rows="2"
+              placeholder="可輸入品牌、型號、引擎、容量等資訊"
+            ></textarea>
+          </label>
+          <label class="form-field">
+            <span class="form-label">維護人</span>
+            <input id="modalMaintainer" name="maintainer" type="text" required />
+          </label>
+        </div>
+        <p id="modalErrorMessage" class="form-error" role="alert"></p>
+        <footer class="modal__footer">
+          <button class="secondary-button" type="button" data-close-modal>取消</button>
+          <button class="primary-button" type="submit">儲存</button>
+        </footer>
+      </form>
+    </div>
+  </div>
 </section>
+
+<style>
+  .emission-source-instances {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    color: #1f2937;
+  }
+
+  .emission-source-instances .page-header {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .emission-source-instances .page-header h1 {
+    margin: 0;
+    font-size: 2rem;
+    color: #111827;
+  }
+
+  .emission-source-instances .page-header p {
+    margin: 0;
+    line-height: 1.6;
+    color: #4b5563;
+  }
+
+  .filter-card,
+  .table-card {
+    background-color: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 14px;
+    padding: 1.5rem;
+    box-shadow: 0 10px 25px rgba(15, 23, 42, 0.06);
+  }
+
+  .filter-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+  }
+
+  .filter-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1rem;
+  }
+
+  .filter-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .field-label {
+    font-weight: 600;
+    color: #374151;
+  }
+
+  select,
+  input[type='text'],
+  textarea,
+  input[type='date'] {
+    width: 100%;
+    padding: 0.6rem 0.75rem;
+    border-radius: 10px;
+    border: 1px solid #d1d5db;
+    background-color: #ffffff;
+    font-size: 1rem;
+    color: #1f2937;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  select:focus,
+  input[type='text']:focus,
+  textarea:focus,
+  input[type='date']:focus {
+    outline: none;
+    border-color: #2563eb;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+  }
+
+  textarea {
+    resize: vertical;
+    min-height: 80px;
+  }
+
+  .filter-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .filter-error {
+    margin: 0;
+    min-height: 1.25rem;
+    color: #dc2626;
+  }
+
+  .filter-buttons {
+    display: flex;
+    gap: 0.75rem;
+  }
+
+  .primary-action,
+  .primary-button {
+    border: none;
+    border-radius: 10px;
+    padding: 0.65rem 1.5rem;
+    font-size: 1rem;
+    font-weight: 600;
+    color: #ffffff;
+    background: linear-gradient(135deg, #2563eb, #1d4ed8);
+    cursor: pointer;
+    box-shadow: 0 12px 20px rgba(37, 99, 235, 0.18);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .primary-action:hover,
+  .primary-button:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 14px 26px rgba(37, 99, 235, 0.24);
+  }
+
+  .primary-action:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+    box-shadow: none;
+  }
+
+  .secondary-action,
+  .secondary-button {
+    border: 1px solid #cbd5f5;
+    border-radius: 10px;
+    padding: 0.65rem 1.5rem;
+    font-size: 1rem;
+    font-weight: 600;
+    color: #1d4ed8;
+    background: #f3f4ff;
+    cursor: pointer;
+    transition: background-color 0.2s ease, color 0.2s ease;
+  }
+
+  .secondary-action:hover,
+  .secondary-button:hover {
+    background-color: #e0e7ff;
+  }
+
+  .secondary-action:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+  }
+
+  .table-card {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .table-card__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .table-card__header h2 {
+    margin: 0;
+    font-size: 1.4rem;
+    color: #111827;
+  }
+
+  .selection-summary {
+    margin: 0.35rem 0 0;
+    color: #4b5563;
+  }
+
+  .table-scroll {
+    overflow-x: auto;
+  }
+
+  .data-table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 720px;
+  }
+
+  .data-table th,
+  .data-table td {
+    padding: 0.75rem 0.85rem;
+    border-bottom: 1px solid #e5e7eb;
+    text-align: left;
+    vertical-align: top;
+    line-height: 1.5;
+  }
+
+  .data-table thead th {
+    background-color: #f3f4f6;
+    font-weight: 600;
+    color: #1f2937;
+  }
+
+  .table-empty {
+    margin: 0;
+    color: #9ca3af;
+  }
+
+  .table-status {
+    margin: 0;
+    color: #2563eb;
+    min-height: 1.25rem;
+  }
+
+  .modal {
+    position: fixed;
+    inset: 0;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    z-index: 30;
+  }
+
+  .modal.is-open {
+    display: flex;
+  }
+
+  .modal__overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.45);
+  }
+
+  .modal__dialog {
+    position: relative;
+    width: min(640px, 92vw);
+    background: #ffffff;
+    border-radius: 16px;
+    box-shadow: 0 28px 60px rgba(15, 23, 42, 0.35);
+    overflow: hidden;
+  }
+
+  .modal__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.25rem 1.5rem 0;
+    gap: 1rem;
+  }
+
+  .modal__header h2 {
+    margin: 0;
+    font-size: 1.35rem;
+    color: #111827;
+  }
+
+  .modal__close {
+    position: relative;
+    width: 40px;
+    height: 40px;
+    border: none;
+    border-radius: 50%;
+    background: #f3f4f6;
+    cursor: pointer;
+  }
+
+  .modal__close::before,
+  .modal__close::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 16px;
+    height: 2px;
+    background: #4b5563;
+  }
+
+  .modal__close::before {
+    transform: translate(-50%, -50%) rotate(45deg);
+  }
+
+  .modal__close::after {
+    transform: translate(-50%, -50%) rotate(-45deg);
+  }
+
+  .modal__body {
+    padding: 1.25rem 1.5rem 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+  }
+
+  .form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1rem;
+  }
+
+  .form-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+  }
+
+  .form-field--span {
+    grid-column: 1 / -1;
+  }
+
+  .form-label {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #374151;
+  }
+
+  .form-error {
+    margin: 0;
+    color: #dc2626;
+    min-height: 1.2rem;
+  }
+
+  .modal__footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.75rem;
+    padding-top: 0.75rem;
+  }
+
+  @media (max-width: 768px) {
+    .data-table {
+      min-width: 640px;
+    }
+
+    .modal__dialog {
+      width: min(92vw, 560px);
+    }
+  }
+</style>
