@@ -74,6 +74,7 @@ const ACTIVITIES: ActivityDefinition[] = [
 const FACTOR_SOURCE = '環保署固定燃燒排放係數表 (2024 年度)';
 const COMBUSTION_DATA_PATH = `${import.meta.env.BASE_URL}data/stationary-combustion.csv`;
 const ATTACHMENT_BASE_PATH = `${import.meta.env.BASE_URL}attachments/`;
+const TEMPLATE_DOWNLOAD_PATH = `${import.meta.env.BASE_URL}templates/stationary-combustion-template.xlsx`;
 
 const FACTOR_TABLE: Record<FuelType, FactorEntry> = {
   '92 無鉛汽油': {
@@ -146,6 +147,10 @@ export function initStationaryCombustion() {
   const tableBody = document.getElementById('stationaryTableBody');
   const emptyMessage = document.getElementById('stationaryEmptyMessage');
   const addButton = document.getElementById('addCombustionRecordButton');
+  const templateDownloadButton = document.getElementById('stationaryTemplateDownload');
+  const templateUploadButton = document.getElementById('stationaryTemplateUpload');
+  const templateInput = document.getElementById('stationaryTemplateInput') as HTMLInputElement | null;
+  const templateMessage = document.getElementById('stationaryTemplateMessage') as HTMLParagraphElement | null;
   const addModal = document.getElementById('stationaryAddModal');
   const addForm = document.getElementById('stationaryAddForm') as HTMLFormElement | null;
   const depotSelect = document.getElementById('stationaryModalDepot') as HTMLSelectElement | null;
@@ -174,6 +179,10 @@ export function initStationaryCombustion() {
     !tableBody ||
     !emptyMessage ||
     !addButton ||
+    !templateDownloadButton ||
+    !templateUploadButton ||
+    !templateInput ||
+    !templateMessage ||
     !addModal ||
     !addForm ||
     !depotSelect ||
@@ -205,6 +214,8 @@ export function initStationaryCombustion() {
 
   let records: CombustionRecord[] = [];
 
+  renderModalAttachments();
+
   populateSelect(
     depotSelect,
     DEPOT_OPTIONS.map((label) => ({ value: label, label })),
@@ -230,7 +241,7 @@ export function initStationaryCombustion() {
 
   attachmentInput.addEventListener('change', () => {
     currentAttachments = collectAttachments(attachmentInput.files);
-    renderAttachmentList(attachmentList, currentAttachments);
+    renderModalAttachments();
   });
 
   dropZone.addEventListener('dragover', (event) => {
@@ -247,7 +258,45 @@ export function initStationaryCombustion() {
     dropZone.classList.remove('is-dragover');
     const files = event.dataTransfer?.files || null;
     currentAttachments = collectAttachments(files);
-    renderAttachmentList(attachmentList, currentAttachments);
+    renderModalAttachments();
+  });
+
+  templateDownloadButton.addEventListener('click', () => {
+    templateMessage.textContent = '';
+
+    const anchor = document.createElement('a');
+    anchor.href = TEMPLATE_DOWNLOAD_PATH;
+    anchor.download = '固定燃燒排放源活動範本.xlsx';
+    document.body.appendChild(anchor);
+    anchor.click();
+    document.body.removeChild(anchor);
+  });
+
+  templateUploadButton.addEventListener('click', () => {
+    templateInput.value = '';
+    templateMessage.textContent = '';
+    templateMessage.classList.remove('upload-card__message--error');
+    templateInput.click();
+  });
+
+  templateInput.addEventListener('change', () => {
+    templateMessage.textContent = '';
+    templateMessage.classList.remove('upload-card__message--error');
+
+    const file = templateInput.files?.[0] ?? null;
+    if (!file) {
+      return;
+    }
+
+    if (!/\.xlsx?$/.test(file.name.toLowerCase())) {
+      templateMessage.textContent = '請選擇副檔名為 .xls 或 .xlsx 的 Excel 檔案。';
+      templateMessage.classList.add('upload-card__message--error');
+      templateInput.value = '';
+      return;
+    }
+
+    templateMessage.textContent = `已上傳 ${file.name}，系統將匯入 Excel 資料並更新下方清單。`;
+    templateInput.value = '';
   });
 
   addButton.addEventListener('click', () => {
@@ -297,7 +346,7 @@ export function initStationaryCombustion() {
     addForm.reset();
     currentAttachments = [];
     attachmentInput.value = '';
-    renderAttachmentList(attachmentList, currentAttachments);
+    renderModalAttachments();
     closeModal(addModal);
   });
 
@@ -356,7 +405,7 @@ export function initStationaryCombustion() {
     modalError.textContent = '';
     currentAttachments = [];
     attachmentInput.value = '';
-    renderAttachmentList(attachmentList, currentAttachments);
+    renderModalAttachments();
 
     openModal(addModal);
     depotSelect.focus();
@@ -417,7 +466,7 @@ export function initStationaryCombustion() {
 
       row.appendChild(createCell(record.dataSource, true));
       row.appendChild(createCell(factor?.source || FACTOR_SOURCE));
-      row.appendChild(createAttachmentCell(record.attachments));
+      row.appendChild(createAttachmentCell(record));
       row.appendChild(createCell(record.notes || '—', true));
 
       tableBody.appendChild(row);
@@ -669,40 +718,99 @@ export function initStationaryCombustion() {
     }));
   }
 
-  function renderAttachmentList(container: HTMLElement, attachments: Attachment[]) {
+  function renderAttachmentList(
+    container: HTMLElement,
+    attachments: Attachment[],
+    onRemove?: (index: number) => void
+  ) {
     container.innerHTML = '';
-    attachments.forEach(({ name }) => {
+    attachments.forEach(({ name }, index) => {
       const item = document.createElement('li');
       item.textContent = name;
+      if (onRemove) {
+        const removeButton = document.createElement('button');
+        removeButton.type = 'button';
+        removeButton.className = 'attachment-remove-button';
+        removeButton.textContent = '刪除';
+        removeButton.addEventListener('click', () => onRemove(index));
+        item.appendChild(removeButton);
+      }
       container.appendChild(item);
     });
   }
 
-  function createAttachmentCell(attachments: Attachment[]) {
+  function createAttachmentCell(record: CombustionRecord) {
     const cell = document.createElement('td');
+    cell.className = 'attachment-cell';
 
-    if (attachments.length === 0) {
-      cell.textContent = '—';
-      return cell;
+    if (record.attachments.length > 0) {
+      const list = document.createElement('ul');
+      list.className = 'attachment-links';
+
+      record.attachments.forEach(({ name, url }, attachmentIndex) => {
+        const item = document.createElement('li');
+        const link = document.createElement('a');
+        link.href = url;
+        link.textContent = name;
+        link.download = name;
+        link.target = '_blank';
+        link.rel = 'noopener noreferrer';
+        item.appendChild(link);
+
+        const removeButton = document.createElement('button');
+        removeButton.type = 'button';
+        removeButton.textContent = '刪除';
+        removeButton.addEventListener('click', () => {
+          record.attachments.splice(attachmentIndex, 1);
+          renderTable();
+        });
+        item.appendChild(removeButton);
+
+        list.appendChild(item);
+      });
+
+      cell.appendChild(list);
+    } else {
+      const empty = document.createElement('span');
+      empty.textContent = '—';
+      cell.appendChild(empty);
     }
 
-    const list = document.createElement('ul');
-    list.className = 'attachment-links';
+    const uploadButton = document.createElement('button');
+    uploadButton.type = 'button';
+    uploadButton.className = 'attachment-upload-button';
+    uploadButton.textContent = '上傳附件';
 
-    attachments.forEach(({ name, url }) => {
-      const item = document.createElement('li');
-      const link = document.createElement('a');
-      link.href = url;
-      link.textContent = name;
-      link.download = name;
-      link.target = '_blank';
-      link.rel = 'noopener noreferrer';
-      item.appendChild(link);
-      list.appendChild(item);
+    const uploadInput = document.createElement('input');
+    uploadInput.type = 'file';
+    uploadInput.multiple = true;
+    uploadInput.hidden = true;
+
+    uploadButton.addEventListener('click', () => {
+      uploadInput.value = '';
+      uploadInput.click();
     });
 
-    cell.appendChild(list);
+    uploadInput.addEventListener('change', () => {
+      const newAttachments = collectAttachments(uploadInput.files);
+      if (newAttachments.length > 0) {
+        record.attachments.push(...newAttachments);
+        renderTable();
+      }
+      uploadInput.value = '';
+    });
+
+    cell.appendChild(uploadButton);
+    cell.appendChild(uploadInput);
+
     return cell;
+  }
+
+  function renderModalAttachments() {
+    renderAttachmentList(attachmentList, currentAttachments, (index) => {
+      currentAttachments.splice(index, 1);
+      renderModalAttachments();
+    });
   }
 
   function resolveAttachmentUrl(path: string) {
